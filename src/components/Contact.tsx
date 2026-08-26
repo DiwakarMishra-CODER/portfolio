@@ -6,11 +6,17 @@ import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-const EMAIL = "kumarishweta.email@gmail.com";
+const EMAIL = "diwakarmishraemail@gmail.com";
 const [EMAIL_LOCAL, EMAIL_DOMAIN] = EMAIL.split("@").map((part, i) => (i === 0 ? part + "@" : part));
-const LINKEDIN_URL = "https://www.linkedin.com/in/arshwetakumari/";
-const GITHUB_URL = "https://github.com/Shwetakmishra";
-const RESUME_URL = "/Shweta-Kumari-Resume.pdf";
+const LINKEDIN_URL = "https://www.linkedin.com/in/diwakar-mishra-8b0690316";
+const GITHUB_URL = "https://github.com/DiwakarMishra-CODER";
+const LEETCODE_URL = "https://leetcode.com/u/DiwakarCracksIt/";
+// NOTE: the "Download CV" pill was REMOVED because it pointed at
+// /Diwakar-Mishra-Resume.pdf, which does not exist in public/ — a 404 on the
+// one button a recruiter actually wants is worse than no button at all.
+// To restore: drop `Diwakar-Mishra-Resume.pdf` into public/, then
+// re-add `const RESUME_URL = "/Diwakar-Mishra-Resume.pdf";` here and the
+// pill in the links row below (see the matching comment there).
 
 // Email CTA colors — tunables. Set as CSS custom properties on the anchor
 // (see `.email-cta`/`.email-cta:hover` in globals.css) rather than plain
@@ -87,7 +93,11 @@ function GithubIcon() {
   );
 }
 
-function DownloadIcon() {
+// Code brackets rather than a traced LeetCode logo: the real mark is a set
+// of overlapping curves that turn to mush at 16px, and it read as a vague
+// arrow. Paired with the "LeetCode" label right next to it, a clean `< >`
+// is unambiguous and actually legible at this size.
+function LeetCodeIcon() {
   return (
     <svg
       width="16"
@@ -95,15 +105,36 @@ function DownloadIcon() {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16" />
+      <path d="M8.5 7.5 4 12l4.5 4.5M15.5 7.5 20 12l-4.5 4.5" />
     </svg>
   );
 }
+
+// Kept commented out rather than deleted: it belongs to the "Download CV"
+// pill, which is temporarily removed (see the RESUME_URL note above). Live
+// as code it would only be an unused-variable warning.
+// function DownloadIcon() {
+//   return (
+//     <svg
+//       width="16"
+//       height="16"
+//       viewBox="0 0 24 24"
+//       fill="none"
+//       stroke="currentColor"
+//       strokeWidth="1.5"
+//       strokeLinecap="round"
+//       strokeLinejoin="round"
+//       aria-hidden="true"
+//     >
+//       <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16" />
+//     </svg>
+//   );
+// }
 
 export default function Contact() {
   const reduced = usePrefersReducedMotion();
@@ -153,27 +184,43 @@ export default function Contact() {
         <motion.h2
           initial="hidden"
           whileInView="visible"
+          // See CLAUDE.md: `initial`/`whileInView` resolves its hidden pose
+          // against the pre-hydration `reduced === false` variants, and an
+          // element that never intersects stays stuck there. `animate`
+          // outranks `whileInView`, so this force-corrects it.
+          animate={reduced ? "visible" : undefined}
           viewport={{ once: true, amount: 0.5 }}
           variants={reveal(0, reduced)}
           className="font-display text-4xl font-extrabold leading-tight tracking-tight text-ink sm:text-5xl lg:text-6xl"
         >
-          Let&rsquo;s build something people love.
+          Let&rsquo;s talk.
         </motion.h2>
 
         <motion.p
           initial="hidden"
           whileInView="visible"
+          // See CLAUDE.md: `initial`/`whileInView` resolves its hidden pose
+          // against the pre-hydration `reduced === false` variants, and an
+          // element that never intersects stays stuck there. `animate`
+          // outranks `whileInView`, so this force-corrects it.
+          animate={reduced ? "visible" : undefined}
           viewport={{ once: true, amount: 0.5 }}
           variants={reveal(0.1, reduced)}
           className="mt-6 max-w-md font-body text-base text-muted sm:text-lg"
         >
-          Open to product roles and good conversations. Reach out anytime.
+          Graduating 2028, based in Delhi. Open to SDE internships now and
+          new-grad roles after that.
         </motion.p>
 
         <motion.a
           href={`mailto:${EMAIL}`}
           initial="hidden"
           whileInView="visible"
+          // See CLAUDE.md: `initial`/`whileInView` resolves its hidden pose
+          // against the pre-hydration `reduced === false` variants, and an
+          // element that never intersects stays stuck there. `animate`
+          // outranks `whileInView`, so this force-corrects it.
+          animate={reduced ? "visible" : undefined}
           viewport={{ once: true, amount: 0.5 }}
           variants={reveal(0.2, reduced)}
           className="email-cta group relative mt-10 inline-block break-words font-display text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl"
@@ -200,6 +247,11 @@ export default function Contact() {
         <motion.div
           initial="hidden"
           whileInView="visible"
+          // See CLAUDE.md: `initial`/`whileInView` resolves its hidden pose
+          // against the pre-hydration `reduced === false` variants, and an
+          // element that never intersects stays stuck there. `animate`
+          // outranks `whileInView`, so this force-corrects it.
+          animate={reduced ? "visible" : undefined}
           viewport={{ once: true, amount: 0.5 }}
           variants={reveal(0.3, reduced)}
           className="mt-10 flex flex-wrap items-center justify-center gap-3"
@@ -212,17 +264,23 @@ export default function Contact() {
             <GithubIcon />
             GitHub
           </a>
-          <a href={RESUME_URL} download target="_blank" rel="noopener noreferrer" className={LINK_PILL_CLASS}>
-            <DownloadIcon />
-            Download CV
+          <a href={LEETCODE_URL} target="_blank" rel="noopener noreferrer" className={LINK_PILL_CLASS}>
+            <LeetCodeIcon />
+            LeetCode
           </a>
+          {/* "Download CV" pill removed until the PDF exists — see the note
+              beside RESUME_URL at the top of this file. Restore as:
+              <a href={RESUME_URL} download target="_blank" rel="noopener noreferrer" className={LINK_PILL_CLASS}>
+                <DownloadIcon />
+                Download CV
+              </a> */}
         </motion.div>
       </div>
 
       {/* Slim footer bar — the functional baseline, not a design moment:
           static (no scroll-reveal), muted, low-key. */}
       <div className="relative mx-auto mt-24 flex max-w-6xl flex-col items-center gap-4 border-t border-ink/10 pt-6 font-body text-xs text-muted sm:mt-32 sm:flex-row sm:justify-between sm:gap-0">
-        <p>© 2026 Shweta Kumari</p>
+        <p>© 2026 Diwakar Mishra</p>
         <nav className="flex items-center gap-4">
           <a href="#projects" className="transition-colors hover:text-ink">
             Projects

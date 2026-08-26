@@ -26,9 +26,10 @@ const PROOF_VALUE_COLOR = "#4A3322";
 const PROOF_CAPTION_COLOR = "#6E5D4C";
 
 const PROOF_ITEMS = [
-  { value: "3+ years", caption: "in end-to-end product" },
-  { value: "Top 5 of 120", caption: "Nextleap PM Fellowship" },
-  { value: "Ownership Excellence", caption: "Award · Sunstone" },
+  { value: "9.43 / 10", caption: "CGPA — top of the CSE-AI branch" },
+  { value: "1820", caption: "LeetCode contest rating · 300+ solved" },
+  { value: "Semi-Finalist", caption: "Flipkart GRiD 8.0 — national" },
+  { value: "Winner", caption: "CodeX Hackathon · MAIT" },
 ];
 
 interface Principle {
@@ -40,26 +41,31 @@ interface Principle {
   titleColor: string;
 }
 
+// One tile per project (Starweave / Arthouse Atlas / CareerSaarthi), each a
+// human-readable idea rather than an aphorism or a paragraph. Kept to ~18
+// words on purpose: the hard numbers live in the project cards, so these
+// stay short and the row renders even. A denser draft pushed this row to 7
+// lines at 1024px, which fights the bento's "fits in one view" goal.
 const PRINCIPLES: Principle[] = [
   {
-    title: "Value that compounds",
-    copy: "Start from real user needs, tie them to what grows the business.",
+    title: "Show your sources",
+    copy: "Every influence link in Starweave records where the claim came from. 908 of 1,053 have a named source.",
     bg: "linear-gradient(160deg, rgba(232,147,74,0.30), rgba(232,147,74,0.09))",
     border: "rgba(232,147,74,0.30)",
     dash: "#E8934A",
     titleColor: "#B96E2E",
   },
   {
-    title: "Ship, measure, iterate",
-    copy: "Fast MVPs, real data, A/B tests. Evidence steers the roadmap.",
+    title: "Curate by cutting",
+    copy: "Arthouse Atlas is 497 films kept from a much longer list, trimmed whenever something too mainstream slipped in.",
     bg: "linear-gradient(160deg, rgba(228,103,79,0.30), rgba(228,103,79,0.09))",
     border: "rgba(228,103,79,0.30)",
     dash: "#E4674F",
     titleColor: "#C24A34",
   },
   {
-    title: "Bring the team with you",
-    copy: "Keeping design, engineering, and ops rowing the same way.",
+    title: "Plan for the API failing",
+    copy: "Rate limits, dead endpoints, blank screens. A cache absorbs the first; fallbacks cover the rest.",
     bg: "linear-gradient(160deg, rgba(224,130,104,0.30), rgba(224,130,104,0.09))",
     border: "rgba(224,130,104,0.30)",
     dash: "#E08268",
@@ -73,14 +79,18 @@ const TOOLKIT_LABEL_COLOR = "#A85E38";
 const TOOLKIT_CHIP_CLASS =
   "inline-flex items-center rounded-full border border-[rgba(168,94,56,0.20)] bg-[rgba(255,255,255,0.72)] px-3.5 py-1.5 font-body text-xs text-[#5A4436] sm:text-sm";
 const SKILLS = [
-  "Product Strategy",
-  "A/B Testing",
-  "Analytics",
-  "Gamification",
-  "User Research",
-  "Figma",
+  "React",
+  "Next.js",
+  "TypeScript",
+  "Node.js",
+  "Express",
+  "Supabase",
+  "MongoDB",
+  "Tailwind CSS",
+  "C++",
   "SQL",
-  "GTM",
+  "LLM Integration",
+  "Git · CI",
 ];
 
 const HUMAN_BG = "linear-gradient(120deg, rgba(245,197,66,0.18), rgba(232,147,74,0.06))";
@@ -161,6 +171,11 @@ export default function About() {
         <motion.p
           initial="hidden"
           whileInView="visible"
+          // See CLAUDE.md: `initial`/`whileInView` resolves its hidden pose
+          // against the pre-hydration `reduced === false` variants, and an
+          // element that never intersects stays stuck there. `animate`
+          // outranks `whileInView`, so this force-corrects it.
+          animate={reduced ? "visible" : undefined}
           viewport={{ once: true, amount: 0.6 }}
           variants={reveal(0, reduced)}
           className="text-[11px] font-bold uppercase tracking-[0.34em] text-[#8A8175]"
@@ -178,14 +193,16 @@ export default function About() {
             reduced={reduced}
           >
             <h2 className="font-display font-extrabold leading-none tracking-[-0.025em] text-ink text-[clamp(2.1rem,3.9vw,3.7rem)]">
-              I build products that{" "}
-              <span className="text-coral">earn their place</span>{" "}
-              in people&rsquo;s lives.
+              I pick problems that need{" "}
+              <span className="text-coral">more than a database</span>.
             </h2>
             <p className="mt-5 max-w-[42ch] font-body text-[1.1rem] text-[#5F584D]">
-              Product Manager with 3+ years of end-to-end ownership — turning
-              user problems into products that move the business across
-              growth, retention, and monetization.
+              B.Tech CSE-AI at Maharaja Agrasen Institute of Technology,
+              class of 2028. Delhi, India. Every project here comes down to a
+              scoring system that didn&rsquo;t exist off the shelf — how much
+              a citation is worth, how much a click is worth, how much a good
+              answer is worth. All three show their working rather than asking
+              you to take it on faith.
             </p>
           </Tile>
 
@@ -272,7 +289,8 @@ export default function About() {
             <div className="flex h-full items-center gap-2">
               <SparkleIcon />
               <p className="font-body text-[13.5px] font-medium" style={{ color: HUMAN_TEXT_COLOR }}>
-                Off the clock — building AI side projects and learning in public.
+                Starweave and Arthouse Atlas both came out of the same
+                sleepless night.
               </p>
             </div>
           </Tile>
