@@ -11,12 +11,12 @@ const [EMAIL_LOCAL, EMAIL_DOMAIN] = EMAIL.split("@").map((part, i) => (i === 0 ?
 const LINKEDIN_URL = "https://www.linkedin.com/in/diwakar-mishra-8b0690316";
 const GITHUB_URL = "https://github.com/DiwakarMishra-CODER";
 const LEETCODE_URL = "https://leetcode.com/u/DiwakarCracksIt/";
-// NOTE: the "Download CV" pill was REMOVED because it pointed at
-// /Diwakar-Mishra-Resume.pdf, which does not exist in public/ — a 404 on the
-// one button a recruiter actually wants is worse than no button at all.
-// To restore: drop `Diwakar-Mishra-Resume.pdf` into public/, then
-// re-add `const RESUME_URL = "/Diwakar-Mishra-Resume.pdf";` here and the
-// pill in the links row below (see the matching comment there).
+// The filename is what lands in the recruiter's Downloads folder, so it's
+// deliberately clean and URL-safe — no spaces, no parentheses, no "(6)"
+// download artifact. Verify this file exists in public/ before shipping:
+// a 404 on the one button a recruiter actually wants is worse than no
+// button at all (it shipped broken once already).
+const RESUME_URL = "/Diwakar-Mishra-Resume.pdf";
 
 // Email CTA colors — tunables. Set as CSS custom properties on the anchor
 // (see `.email-cta`/`.email-cta:hover` in globals.css) rather than plain
@@ -115,26 +115,23 @@ function LeetCodeIcon() {
   );
 }
 
-// Kept commented out rather than deleted: it belongs to the "Download CV"
-// pill, which is temporarily removed (see the RESUME_URL note above). Live
-// as code it would only be an unused-variable warning.
-// function DownloadIcon() {
-//   return (
-//     <svg
-//       width="16"
-//       height="16"
-//       viewBox="0 0 24 24"
-//       fill="none"
-//       stroke="currentColor"
-//       strokeWidth="1.5"
-//       strokeLinecap="round"
-//       strokeLinejoin="round"
-//       aria-hidden="true"
-//     >
-//       <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16" />
-//     </svg>
-//   );
-// }
+function DownloadIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16" />
+    </svg>
+  );
+}
 
 export default function Contact() {
   const reduced = usePrefersReducedMotion();
@@ -268,12 +265,16 @@ export default function Contact() {
             <LeetCodeIcon />
             LeetCode
           </a>
-          {/* "Download CV" pill removed until the PDF exists — see the note
-              beside RESUME_URL at the top of this file. Restore as:
-              <a href={RESUME_URL} download target="_blank" rel="noopener noreferrer" className={LINK_PILL_CLASS}>
-                <DownloadIcon />
-                Download CV
-              </a> */}
+          <a
+            href={RESUME_URL}
+            download="Diwakar-Mishra-Resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={LINK_PILL_CLASS}
+          >
+            <DownloadIcon />
+            Download CV
+          </a>
         </motion.div>
       </div>
 

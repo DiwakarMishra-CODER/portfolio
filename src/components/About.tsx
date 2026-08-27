@@ -25,9 +25,14 @@ const PROOF_LABEL_COLOR = "#A85E2E";
 const PROOF_VALUE_COLOR = "#4A3322";
 const PROOF_CAPTION_COLOR = "#6E5D4C";
 
+// Must match the resume in public/ exactly — a reviewer who opens both will
+// cross-check, and the site claiming more than the CV can defend is worse
+// than either number alone. LeetCode rating is deliberately "1800+" rather
+// than a precise figure: contest ratings move, and a hardcoded peak goes
+// stale silently.
 const PROOF_ITEMS = [
   { value: "9.43 / 10", caption: "CGPA — top of the CSE-AI branch" },
-  { value: "1820", caption: "LeetCode contest rating · 300+ solved" },
+  { value: "1800+", caption: "LeetCode contest rating · 350+ solved" },
   { value: "Semi-Finalist", caption: "Flipkart GRiD 8.0 — national" },
   { value: "Winner", caption: "CodeX Hackathon · MAIT" },
 ];
