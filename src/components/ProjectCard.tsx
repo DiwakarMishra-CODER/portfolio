@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion, useSpring, animate, type Variants } from "motion/react";
 import { useHasFinePointer } from "@/lib/useHasFinePointer";
+import { useHasMounted } from "@/lib/useHasMounted";
 import { useReplayOnReentry } from "@/lib/useReplayOnReentry";
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -143,6 +144,19 @@ function GitHubIcon() {
 // (see `useReplayOnReentry`). Reduced motion shows the final value
 // immediately, no animation, ever.
 //
+// SERVER-RENDERED VALUE — this must never be `0` in the HTML. These three
+// figures (1,053 / 497 / 6) are the strongest evidence on the page, and
+// crawlers and link-preview scrapers frequently don't run JavaScript at all,
+// so a count-up that starts from 0 in the markup shows them zeroes where the
+// numbers should be. `useHasMounted()` is false during SSR and on the
+// hydrating render, so the real figure ships in the HTML; only once React has
+// committed on the client does this fall back to the animation's starting 0.
+//
+// That server-value -> 0 handoff is invisible in practice: the hero is
+// `min-h-screen`, so no project card is ever above the fold on load, and the
+// swap happens well before anything scrolls into view. Don't "simplify" this
+// back to a plain useState(0) — that's the bug this replaced.
+//
 // Thousands separators are supported: the source string may be "1,053", so
 // the numeric target is parsed from digits alone and the separator is
 // re-applied on output. Without this, parseInt("1,053") would stop at the
@@ -173,6 +187,7 @@ function StatCounter({
   const grouped = stat.includes(",");
   const suffix = stat.replace(/^[\d,]+/, ""); // e.g. the "%" in "60%", "" in "497"
   const [display, setDisplay] = useState(0);
+  const mounted = useHasMounted();
 
   useEffect(() => {
     // playToken === 0 means it has never played yet (or `reduced` is true,
@@ -191,7 +206,9 @@ function StatCounter({
   // `usePrefersReducedMotion` reports `false` on first paint by design, and a
   // useState initializer only runs once, so seeding state from `reduced`
   // directly would get stuck at 0 once it flips true post-hydration.
-  const shown = reduced ? numeric : display;
+  // Order matters. Reduced motion and the pre-hydration render both want the
+  // true figure; only a mounted client that hasn't played yet shows 0.
+  const shown = reduced || !mounted ? numeric : display;
   const format = (n: number) => (grouped ? n.toLocaleString("en-US") : String(n));
 
   return (
