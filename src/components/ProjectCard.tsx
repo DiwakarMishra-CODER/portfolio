@@ -408,14 +408,18 @@ export default function ProjectCard({
           </motion.div>
 
           <motion.div variants={reveal(0.2, reduced)} className="w-full lg:w-[46%]">
-            <div className="flex items-baseline justify-between gap-4">
-              <h3 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink sm:text-3xl">
-                {project.title}
-              </h3>
-              <span className="shrink-0 font-body text-xs tracking-wide text-muted sm:text-sm">
-                {project.year}
-              </span>
-            </div>
+            {/* Year sits ABOVE the title as a small date eyebrow, not beside
+                it. Baseline-aligned on the title's row with justify-between, it
+                floated off to the far right with a dead gap between — reading
+                as an orphaned number rather than a date. Putting it in the
+                stack-chip row was worse still: it looked like a library
+                alongside d3-force. */}
+            <p className="font-body text-xs tracking-[0.18em] text-muted">
+              {project.year}
+            </p>
+            <h3 className="mt-1.5 font-display text-2xl font-extrabold uppercase tracking-tight text-ink sm:text-3xl">
+              {project.title}
+            </h3>
             <p className="mt-1.5 font-body text-sm text-muted sm:text-base">
               {project.tagline}
             </p>

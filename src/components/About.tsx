@@ -30,11 +30,21 @@ const PROOF_CAPTION_COLOR = "#6E5D4C";
 // than either number alone. LeetCode rating is deliberately "1800+" rather
 // than a precise figure: contest ratings move, and a hardcoded peak goes
 // stale silently.
+//
+// TWO CLAIMS WERE DELIBERATELY WEAKENED HERE — do not "restore" them:
+//  • CGPA carries NO ranking. It said "top of the CSE-AI branch"; the real
+//    position is somewhere in the top few and isn't confirmed. 9.43/10 is
+//    excellent unaided, and an unverifiable rank next to a verifiable number
+//    puts doubt on the number too.
+//  • CodeX is "Neighbourly Choice", not "Winner". It's a named award at the
+//    hackathon, not the overall first place, and "Winner" alone read as the
+//    latter. A reviewer who checks the linked certificate would find the
+//    weaker claim — which is exactly the wrong thing to be caught doing.
 const PROOF_ITEMS = [
-  { value: "9.43 / 10", caption: "CGPA — top of the CSE-AI branch" },
+  { value: "9.43 / 10", caption: "CGPA · B.Tech CSE-AI" },
   { value: "1800+", caption: "LeetCode contest rating · 350+ solved" },
   { value: "Semi-Finalist", caption: "Flipkart GRiD 8.0 — national" },
-  { value: "Winner", caption: "CodeX Hackathon · MAIT" },
+  { value: "Neighbourly Choice", caption: "Award · CodeX Hackathon, MAIT" },
 ];
 
 interface Principle {
@@ -51,18 +61,44 @@ interface Principle {
 // words on purpose: the hard numbers live in the project cards, so these
 // stay short and the row renders even. A denser draft pushed this row to 7
 // lines at 1024px, which fights the bento's "fits in one view" goal.
+//
+// Tile 1 used to be "Show your sources", which restated the Starweave card's
+// own provenance stats ~200px away. It now carries the genre-map layout work
+// — the second-strongest engineering result in the portfolio, which appeared
+// nowhere on the site at all.
+//
+// The technique names are stated outright, same reasoning as "Dijkstra" in
+// the Starweave card: a named technique is a SKIPPABLE credential, not
+// comprehension-blocking jargon. Note the ORDER — outcome first ("packs 53
+// timelines into the fewest rows"), techniques as a trailing list. That way a
+// non-technical reader has the point before the jargon arrives and can stop
+// reading; putting the algorithm names first would block the sentence for
+// them. This costs one line at 1024px versus an unnamed version, which is
+// worth it: naming Starweave keeps the tile legible out of order (like the
+// other two, which name their own project) and the full technique names are
+// the credential. Keep the British "colouring" to match the résumé. That kills a duplication and
+// fills a real gap in one move. Deliberately a SWAP, not a fourth tile: the
+// row is 3 x col-span-4 = 12 exactly, so a fourth would force col-span-3 and
+// re-wrap every tile — a layout change to solve a copy problem.
 const PRINCIPLES: Principle[] = [
   {
-    title: "Show your sources",
-    copy: "Every influence link in Starweave records where the claim came from. 908 of 1,053 have a named source.",
+    title: "Layout is an algorithm",
+    copy: "Starweave's genre map packs 53 timelines into the fewest rows — heavy-path decomposition, greedy interval colouring, no labels colliding.",
     bg: "linear-gradient(160deg, rgba(232,147,74,0.30), rgba(232,147,74,0.09))",
     border: "rgba(232,147,74,0.30)",
     dash: "#E8934A",
     titleColor: "#B96E2E",
   },
   {
+    // This used to restate the Arthouse project card almost verbatim
+    // ("497 films kept from a much longer list... trimmed whenever something
+    // too mainstream slipped in" — same sentence, ~200px away). Same fix as
+    // tile 1: give the tile a new angle instead of the card's own stat. The
+    // angle here is his own framing — no single critics' list or festival
+    // canon has the full picture, so the value isn't just cutting, it's
+    // merging sources that don't agree.
     title: "Curate by cutting",
-    copy: "Arthouse Atlas is 497 films kept from a much longer list, trimmed whenever something too mainstream slipped in.",
+    copy: "Critics' polls and festival canons don't agree on one list. Arthouse Atlas merges them, then cuts what's too mainstream.",
     bg: "linear-gradient(160deg, rgba(228,103,79,0.30), rgba(228,103,79,0.09))",
     border: "rgba(228,103,79,0.30)",
     dash: "#E4674F",
@@ -70,7 +106,7 @@ const PRINCIPLES: Principle[] = [
   },
   {
     title: "Plan for the API failing",
-    copy: "Rate limits, dead endpoints, blank screens. A cache absorbs the first; fallbacks cover the rest.",
+    copy: "Rate limits, dead APIs, blank screens. A cache absorbs the first; fallbacks cover the rest.",
     bg: "linear-gradient(160deg, rgba(224,130,104,0.30), rgba(224,130,104,0.09))",
     border: "rgba(224,130,104,0.30)",
     dash: "#E08268",
@@ -202,12 +238,11 @@ export default function About() {
               <span className="text-coral">more than a database</span>.
             </h2>
             <p className="mt-5 max-w-[42ch] font-body text-[1.1rem] text-[#5F584D]">
-              B.Tech CSE-AI at Maharaja Agrasen Institute of Technology,
-              class of 2028. Delhi, India. Every project here comes down to a
-              scoring system that didn&rsquo;t exist off the shelf — how much
-              a citation is worth, how much a click is worth, how much a good
-              answer is worth. All three show their working rather than asking
-              you to take it on faith.
+              B.Tech CSE-AI at Maharaja Agrasen Institute of Technology in
+              Delhi, graduating 2028. Every project here comes down to a
+              scoring system — how much a citation is worth, how much a click
+              is worth, how much a good answer is worth. All three show their
+              working rather than asking you to take it on faith.
             </p>
           </Tile>
 

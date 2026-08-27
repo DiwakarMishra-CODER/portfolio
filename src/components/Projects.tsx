@@ -31,8 +31,44 @@ const PROJECTS: Project[] = [
     // of and cannot evaluate. A portfolio visitor arrives with zero context, so
     // every line has to stand alone: numbers are legible to a stranger, band
     // names are not.
+    //
+    // 71% -> 11% IS MEASURED, NOT ESTIMATED, and the methodology has to stay
+    // defensible because this is the number an interviewer will push on first:
+    // 1,776 artist pairs compared, BFS (fewest hops) against Dijkstra weighted
+    // by sourcing tier. "Weak" means a hop that is uncited or critic-tier —
+    // including critic-tier is what puts the baseline at 71% rather than
+    // something lower, so the definition is stated rather than implied.
+    // Re-runnable against the live graph in ~0.4ms.
+    //
+    // The cost clause ("for about one extra artist in between", measured
+    // +1.13 on a 3.02-step average) is load-bearing, not padding: without it
+    // this reads as a free win, and the first question is "at what cost?". It
+    // also explains why the floor is 11% and not 0% — some pairs simply have
+    // no well-sourced route. Don't trim it.
+    //
+    // "Dijkstra" is deliberately NAMED while "hop"/"path" are not — they are
+    // two different kinds of technical word. "hop" BLOCKS comprehension: the
+    // reader needs the concept and hasn't got it. "Dijkstra" is SKIPPABLE — a
+    // non-technical reader passes over three words, an engineer reads a
+    // credential. An earlier pass stripped both and left the card stating a
+    // result with no indication of how, which gave an engineer nothing to
+    // latch onto. Name techniques; don't use jargon to explain things.
+    //
+    // NO OTHER GRAPH VOCABULARY IN THE USER-FACING STRING. A draft used "hop",
+    // "path" and "priced" — imported straight from the benchmark notes — which
+    // is meaningless to anyone who hasn't worked with graphs, i.e. most of the
+    // people reading this page. It is "chain", "link", and "one extra artist
+    // in between" out here; "hop"/"path"/"Dijkstra" stay in the comments and
+    // the code, where the audience is a developer. Note the résumé bullet
+    // manages the same claim jargon-free ("poorly-sourced links on the average
+    // path... keeping paths nearly as short") — match that register.
+    //
+    // NOTE: the résumé bullet says 70% -> 11%, measured on the earlier
+    // 293-artist graph. The site describes the current 297-artist graph, whose
+    // benchmark is 71%. Keep this figure matched to whatever graph size the
+    // card states.
     description:
-      "Influence isn't the same as sounding similar — a band can shape another that sounds nothing like it, so audio similarity can't find these links. They have to be sourced instead. 908 of 1,053 connections cite a named source, 562 of them the artist's own words, 30 a recorded denial.",
+      "Influence isn't the same as sounding similar — a band can shape another that sounds nothing like it, so no audio algorithm can find these links. They have to be sourced: 908 of 1,053 cite a named source, 562 the artist's own words. Ask how two artists connect and a Dijkstra search, weighted by how well each link is sourced, traces the best-documented chain rather than the shortest — chains with a poorly-sourced link fell from 71% to 11%, for about one extra artist in between.",
     stack: ["Next.js", "TypeScript", "d3-force", "Canvas API"],
     liveUrl: "https://starweaves.vercel.app/",
     repoUrl: "https://github.com/DiwakarMishra-CODER/starweave",
@@ -125,9 +161,8 @@ export default function Projects() {
           variants={reveal(0.1, reduced)}
           className="mt-4 max-w-2xl font-body text-xl text-ink sm:text-2xl"
         >
-          Three apps built end to end. Each one needed an algorithm that
-          didn&rsquo;t exist off the shelf. Each card links to the running app
-          and its source.
+          Three web apps built end to end &mdash; music, film, and careers.
+          Each card links to the live site and its source.
         </motion.p>
 
         <div className="mt-16 flex flex-col gap-10 sm:mt-20 sm:gap-14 lg:gap-16">

@@ -8,7 +8,7 @@ const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const EMAIL = "diwakarmishraemail@gmail.com";
 const [EMAIL_LOCAL, EMAIL_DOMAIN] = EMAIL.split("@").map((part, i) => (i === 0 ? part + "@" : part));
-const LINKEDIN_URL = "https://www.linkedin.com/in/diwakar-mishra-8b0690316";
+const LINKEDIN_URL = "https://www.linkedin.com/in/diwakar-mishra-dev";
 const GITHUB_URL = "https://github.com/DiwakarMishra-CODER";
 const LEETCODE_URL = "https://leetcode.com/u/DiwakarCracksIt/";
 // The filename is what lands in the recruiter's Downloads folder, so it's
