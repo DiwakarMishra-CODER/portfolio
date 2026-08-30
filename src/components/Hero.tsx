@@ -29,7 +29,7 @@ const navLinks = [
 // shoulders/waist, shot or cropped so the subject faces slightly LEFT —
 // the warm grade and rim-light below assume the light comes from the
 // upper-right (see GoldenHourSky.tsx's sun-glow).
-const PORTRAIT_SRC: string | null = null;
+const PORTRAIT_SRC: string | null = "/diwakar-mishra-cutout.png";
 
 // The cut-out's source photo is neutral/studio-lit; the scene is a warm
 // sunset. This is what integrates the figure into the light — tune the

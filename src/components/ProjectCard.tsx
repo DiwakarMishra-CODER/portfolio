@@ -398,12 +398,20 @@ export default function ProjectCard({
             className="w-full shrink-0 lg:w-[54%]"
           >
             <motion.div style={{ z: frameZ, y: frameY }}>
-              <AppScreenshot
-                image={project.image}
-                title={project.title}
-                hovered={hovered}
-                play={playToken > 0}
-              />
+              <a
+                href={project.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Open ${project.title} live demo`}
+                className="block cursor-pointer"
+              >
+                <AppScreenshot
+                  image={project.image}
+                  title={project.title}
+                  hovered={hovered}
+                  play={playToken > 0}
+                />
+              </a>
             </motion.div>
           </motion.div>
 
