@@ -7,7 +7,7 @@ interview platform.
 
 **Live:** [diwakar-mishra-portfolio.vercel.app](https://diwakar-mishra-portfolio.vercel.app)
 
-![Diwakar Mishra — Software Engineer](https://diwakar-mishra-portfolio.vercel.app/opengraph-image)
+![Diwakar Mishra — Software Engineer](.github/readme-hero.png)
 
 ## Projects showcased
 
