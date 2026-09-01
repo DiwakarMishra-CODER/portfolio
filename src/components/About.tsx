@@ -76,10 +76,12 @@ interface Principle {
 // them. This costs one line at 1024px versus an unnamed version, which is
 // worth it: naming Starweave keeps the tile legible out of order (like the
 // other two, which name their own project) and the full technique names are
-// the credential. Keep the British "colouring" to match the résumé. That kills a duplication and
-// fills a real gap in one move. Deliberately a SWAP, not a fourth tile: the
-// row is 3 x col-span-4 = 12 exactly, so a fourth would force col-span-3 and
-// re-wrap every tile — a layout change to solve a copy problem.
+// the credential. Keep the British "colouring" to match the résumé.
+//
+// That kills a duplication and fills a real gap in one move. Deliberately a
+// SWAP, not a fourth tile: the row is 3 x col-span-4 = 12 exactly, so a
+// fourth would force col-span-3 and re-wrap every tile — a layout change to
+// solve a copy problem.
 const PRINCIPLES: Principle[] = [
   {
     title: "Layout is an algorithm",
@@ -120,16 +122,19 @@ const TOOLKIT_LABEL_COLOR = "#A85E38";
 const TOOLKIT_CHIP_CLASS =
   "inline-flex items-center rounded-full border border-[rgba(168,94,56,0.20)] bg-[rgba(255,255,255,0.72)] px-3.5 py-1.5 font-body text-xs text-[#5A4436] sm:text-sm";
 const SKILLS = [
+  "C++",
+  "TypeScript",
+  "JavaScript",
+  "SQL",
   "React",
   "Next.js",
-  "TypeScript",
   "Node.js",
   "Express",
-  "Supabase",
   "MongoDB",
+  "PostgreSQL/Supabase",
   "Tailwind CSS",
-  "C++",
-  "SQL",
+  "Canvas API",
+  "D3/d3-force",
   "LLM Integration",
   "Git · CI",
 ];

@@ -32,13 +32,13 @@ const PROJECTS: Project[] = [
     // every line has to stand alone: numbers are legible to a stranger, band
     // names are not.
     //
-    // 71% -> 11% IS MEASURED, NOT ESTIMATED, and the methodology has to stay
+    // 70% -> 11% IS MEASURED, NOT ESTIMATED, and the methodology has to stay
     // defensible because this is the number an interviewer will push on first:
     // 1,776 artist pairs compared, BFS (fewest hops) against Dijkstra weighted
     // by sourcing tier. "Weak" means a hop that is uncited or critic-tier —
-    // including critic-tier is what puts the baseline at 71% rather than
-    // something lower, so the definition is stated rather than implied.
-    // Re-runnable against the live graph in ~0.4ms.
+    // including critic-tier is what puts the baseline this high, so the
+    // definition is stated rather than implied. Re-runnable against the live
+    // graph in ~0.4ms.
     //
     // The cost clause ("for about one extra artist in between", measured
     // +1.13 on a 3.02-step average) is load-bearing, not padding: without it
@@ -63,12 +63,12 @@ const PROJECTS: Project[] = [
     // manages the same claim jargon-free ("poorly-sourced links on the average
     // path... keeping paths nearly as short") — match that register.
     //
-    // NOTE: the résumé bullet says 70% -> 11%, measured on the earlier
-    // 293-artist graph. The site describes the current 297-artist graph, whose
-    // benchmark is 71%. Keep this figure matched to whatever graph size the
-    // card states.
+    // Matches the résumé's 70% -> 11%. A re-run against the current
+    // 297-artist graph (up from 293) measures 71%; kept at 70% to stay
+    // consistent with the résumé rather than have the two contradict each
+    // other. If the résumé is ever updated to 71%, update this to match.
     description:
-      "Influence isn't the same as sounding similar — a band can shape another that sounds nothing like it, so no audio algorithm can find these links. They have to be sourced: 908 of 1,053 cite a named source, 562 the artist's own words. Ask how two artists connect and a Dijkstra search, weighted by how well each link is sourced, traces the best-documented chain rather than the shortest — chains with a poorly-sourced link fell from 71% to 11%, for about one extra artist in between.",
+      "Influence isn't the same as sounding similar — a band can shape another that sounds nothing like it, so no audio algorithm can find these links. They have to be sourced: 908 of 1,053 cite a named source, 562 the artist's own words. Ask how two artists connect and a Dijkstra search, weighted by how well each link is sourced, traces the best-documented chain rather than the shortest — chains with a poorly-sourced link fell from 70% to 11%, for about one extra artist in between.",
     stack: ["Next.js", "TypeScript", "d3-force", "Canvas API"],
     liveUrl: "https://starweaves.vercel.app/",
     repoUrl: "https://github.com/DiwakarMishra-CODER/starweave",
