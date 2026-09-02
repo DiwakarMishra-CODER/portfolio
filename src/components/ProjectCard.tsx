@@ -242,13 +242,14 @@ function AppScreenshot({
   image,
   title,
   hovered,
-  play,
+  playToken,
 }: {
   image: string;
   title: string;
   hovered: boolean;
-  play: boolean;
+  playToken: number;
 }) {
+  const play = playToken > 0;
   return (
     <div
       className={`relative ${SHOT_ASPECT} w-full overflow-hidden rounded-xl bg-[#12100E] ring-1 ring-black/10`}
@@ -266,7 +267,17 @@ function AppScreenshot({
         sizes="(min-width: 1024px) 50vw, 100vw"
         className="object-cover object-top"
       />
+      {/* key={playToken} forces a full remount on every replay, not just a
+          boolean flip. `play` only ever transitions false -> true ONCE (it
+          stays true forever after), so animating off a plain boolean means
+          the `animate` target never changes on a second, third... re-entry
+          and Framer has nothing to re-trigger — the gleam played once per
+          page load and never again. A fresh key always starts a fresh mount
+          at `initial`, so it replays cleanly every time. See CLAUDE.md's
+          note on this exact trap; this is also why `useReplayOnReentry`
+          exists as a counter and not a boolean. */}
       <motion.div
+        key={playToken}
         aria-hidden="true"
         initial={{ x: "-130%" }}
         animate={play ? { x: "170%" } : { x: "-130%" }}
@@ -409,7 +420,7 @@ export default function ProjectCard({
                   image={project.image}
                   title={project.title}
                   hovered={hovered}
-                  play={playToken > 0}
+                  playToken={playToken}
                 />
               </a>
             </motion.div>
