@@ -13,14 +13,14 @@ const SILK = "#E8E6DF";
  *  "circuit board" at first glance — done as deep, matte, desaturated green
  *  (never toy green), with gold pads and copper catching light under it. */
 export type Mask = "green" | "black";
-const MASKS: Record<Mask, { mask: string; overTrace: string; ridge: string; shade: string; via: string; viaCore: string; clearance: string }> = {
+export const MASKS: Record<Mask, { mask: string; overTrace: string; ridge: string; shade: string; via: string; viaCore: string; clearance: string }> = {
   green: { mask: "#10301F", overTrace: "#1C4A32", ridge: "rgba(214,255,226,.16)", shade: "rgba(0,12,4,.6)", via: "#1d4530", viaCore: "#0a1d13", clearance: "#0b2016" },
   black: { mask: "#131314", overTrace: "#1F1D1B", ridge: "rgba(255,226,196,.17)", shade: "rgba(0,0,0,.7)", via: "#1b1a19", viaCore: "#0d0d0d", clearance: "#0c0c0c" },
 };
 
 const open = (S: Spec) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${S.BOARD.w} ${S.BOARD.h}" width="${S.BOARD.w * 10}" height="${S.BOARD.h * 10}">`;
 
-const metalDefs = `
+export const metalDefs = `
 <linearGradient id="enig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F1DFA4"/><stop offset=".45" stop-color="#D0B26A"/><stop offset="1" stop-color="#9B7C3C"/></linearGradient>
 <linearGradient id="solder" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ECEFF1"/><stop offset=".5" stop-color="#B9BEC3"/><stop offset="1" stop-color="#7B8187"/></linearGradient>
 <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D5DADF"/><stop offset=".45" stop-color="#A9AFB5"/><stop offset="1" stop-color="#4E545A"/></linearGradient>
@@ -32,7 +32,7 @@ const metalDefs = `
 const r = (x: number, y: number, w: number, h: number, a = "") => `<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}"${a}/>`;
 const c = (x: number, y: number, rad: number, a = "") => `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rad)}"${a}/>`;
 /** Contact shadow: a tight dark copy and a wide faint one, down-right of the part. */
-const shadow = (x: number, y: number, w: number, h: number, rx = 0.2) =>
+export const shadow = (x: number, y: number, w: number, h: number, rx = 0.2) =>
   `<rect x="${f(x + 0.8)}" y="${f(y + 0.8)}" width="${f(w)}" height="${f(h)}" rx="${f(rx + 0.6)}" fill="#000" opacity=".18"/>` +
   `<rect x="${f(x + 0.2)}" y="${f(y + 0.25)}" width="${f(w)}" height="${f(h)}" rx="${f(rx)}" fill="#000" opacity=".6"/>`;
 
@@ -191,7 +191,7 @@ ${S.HOLES.map(hole).join("")}
 // ═════════════════════════════════════════════════════════════════════════
 
 /** A chip passive: body + two solder-capped terminations, along x or y. */
-function passive(x: number, y: number, len: number, wid: number, horizontal: boolean, body: string) {
+export function passive(x: number, y: number, len: number, wid: number, horizontal: boolean, body: string) {
   const tl = len * 0.24;
   if (horizontal) {
     const X = x - len / 2, Y = y - wid / 2;
@@ -200,8 +200,8 @@ function passive(x: number, y: number, len: number, wid: number, horizontal: boo
   const X = x - wid / 2, Y = y - len / 2;
   return shadow(X, Y, wid, len, 0.04) + r(X, Y, wid, len, ` rx=".04" fill="${body}"`) + r(X, Y, wid, tl, ` fill="url(#solder)"`) + r(X, Y + len - tl, wid, tl, ` fill="url(#solder)"`) + r(X, Y + tl, wid * 0.35, len - 2 * tl, ` fill="rgba(255,255,255,.08)"`);
 }
-const CERAMIC = "#8C7B63";
-const RESISTOR = "#151515";
+export const CERAMIC = "#8C7B63";
+export const RESISTOR = "#151515";
 
 /** A small epoxy IC body with a lit top-left bevel and a laser mark. */
 function icBody(x: number, y: number, w: number, h: number, mark: string, markH: number) {

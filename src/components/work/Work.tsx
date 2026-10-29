@@ -1,4 +1,6 @@
 import Teardown from "./Teardown";
+import Rig from "./Rig";
+import StarweavePanel from "@/components/hero/screens/StarweavePanel";
 import StarweaveMachine from "./StarweaveMachine";
 import ArthouseMachine from "./ArthouseMachine";
 import { ARTHOUSE as A, STARWEAVE as S, fmt } from "@/data/figures";
@@ -8,12 +10,27 @@ import { ARTHOUSE as A, STARWEAVE as S, fmt } from "@/data/figures";
 // re-checks the Starweave counts live against the shipped data.
 export default function Work() {
   return (
-    <section id="work" className="film-surface relative px-[var(--gutter)] pb-32 pt-28" aria-labelledby="work-title">
+    <>
+    <Rig
+      n="01"
+      id="starweave"
+      name="Starweave"
+      line="An influence map of indie music. Every link has a source."
+      note="an influence map of indie music"
+      live="https://starweaves.vercel.app/"
+      mem={[`${fmt(S.artists)} artists`, `${fmt(S.links)} links`]}
+      cpu={["Route", "finder"]}
+      knows={`${fmt(S.artists)} artists · ${fmt(S.links)} influences`}
+      decides="Finds the best-sourced route"
+      screen={<StarweavePanel copy />}
+    />
+    {/* v1, until the close-ups replace it. */}
+    <section id="work-v1" className="film-surface relative px-[var(--gutter)] pb-32 pt-28" aria-labelledby="work-v1-title">
       <div className="mx-auto max-w-[1312px]">
         <p className="type-label text-graphite">
           <span className="text-signal-ink">Work</span>&nbsp; Two products, taken apart
         </p>
-        <h2 id="work-title" className="mt-5 max-w-[16ch] text-[clamp(30px,3.6vw,54px)] font-[750] leading-[1.02] [font-variation-settings:'wdth'_112]">
+        <h2 id="work-v1-title" className="mt-5 max-w-[16ch] text-[clamp(30px,3.6vw,54px)] font-[750] leading-[1.02] [font-variation-settings:'wdth'_112]">
           Both are live sites. Scroll, and each cover lifts off.
         </h2>
         <p className="mt-5 max-w-[46ch] text-[clamp(16px,1.3vw,19px)] leading-snug text-graphite">
@@ -22,7 +39,7 @@ export default function Work() {
 
         <div className="mt-24 space-y-36">
           <Teardown
-            id="starweave"
+            id="starweave-v1"
             n="01"
             name="Starweave"
             year="2026"
@@ -83,5 +100,6 @@ export default function Work() {
         </div>
       </div>
     </section>
+    </>
   );
 }

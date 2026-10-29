@@ -113,7 +113,7 @@ export default function Board() {
   const spark = (S: Spec) => (S.J1_ROT ? { x: S.J1.x + S.J1.w / 2 - 4, y: S.J1.y - 3, w: 8, h: 8 } : { x: S.J1.x - 3, y: S.J1.y + S.J1.h / 2 - 4, w: 8, h: 8 });
 
   return (
-    <section className="hb" data-hero-track aria-label="Introduction" style={timelineVars() as CSSProperties}>
+    <section className="hb" aria-label="Introduction" style={timelineVars() as CSSProperties}>
       <style dangerouslySetInnerHTML={{ __html: introCss() }} />
       {/* The opening's clock: every intro animation starts with this one. */}
       <span className="hb-sentinel" aria-hidden="true" />

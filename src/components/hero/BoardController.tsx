@@ -3,12 +3,13 @@
 import { useEffect } from "react";
 import { assemblyClock } from "./clock";
 import { T } from "./timeline";
+import { handoffOn, isLifted, onLift } from "@/components/work/lift";
 
 /*
  * The board's idle life: the pointer turns the board a degree or two and
  * shifts each part by its height (parallax), so the parts read as objects
  * standing on the board. Fine pointers only; nothing under reduced motion.
- * (The scroll handoff joins this later.)
+ * The scroll hand-off itself is CSS (work/beats.ts).
  */
 export default function BoardController() {
   // `?t=` freeze: pin every animation at that moment (the canvases read the
@@ -16,8 +17,11 @@ export default function BoardController() {
   useEffect(() => {
     const t = window.__asmFreeze;
     if (t == null) return;
+    // Only the opening's clock: scroll-driven animations (the teardown) keep
+    // following the scroll, and won't take a time in ms anyway.
     const pin = () =>
       document.getAnimations().forEach((a) => {
+        if (a.timeline !== document.timeline) return;
         a.pause();
         a.currentTime = t;
       });
@@ -63,28 +67,46 @@ export default function BoardController() {
     return () => hero.removeEventListener("click", onClick);
   }, []);
 
+  // The pointer turns the board, and the copy of the Starweave screen that
+  // lifts off it (work/ModuleCopy) turns with it until it lifts — then it
+  // settles flat, on its way to the mat.
   useEffect(() => {
     const board = document.querySelector<HTMLElement>(".hb-board");
     if (!board) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!window.matchMedia("(pointer: fine)").matches) return;
-    let tx = 0, ty = 0, px = 0, py = 0, raf = 0;
+    const copy = document.querySelector<HTMLElement>(".rig-sw .mc");
+    let tx = 0, ty = 0, px = 0, py = 0, cx = 0, cy = 0, raf = 0;
+    const set = (el: HTMLElement, x: number, y: number) => {
+      el.style.setProperty("--px", x.toFixed(4));
+      el.style.setProperty("--py", y.toFixed(4));
+    };
     const frame = () => {
       raf = 0;
       px += (tx - px) * 0.08;
       py += (ty - py) * 0.08;
-      board.style.setProperty("--px", px.toFixed(4));
-      board.style.setProperty("--py", py.toFixed(4));
-      if (Math.abs(tx - px) > 0.001 || Math.abs(ty - py) > 0.001) raf = requestAnimationFrame(frame);
+      set(board, px, py);
+      // The copy follows only while it stands in for the board's own screen.
+      const follow = handoffOn() && !isLifted();
+      const [gx, gy] = follow ? [px, py] : [0, 0];
+      cx = follow ? px : cx + (gx - cx) * 0.12;
+      cy = follow ? py : cy + (gy - cy) * 0.12;
+      if (copy) set(copy, cx, cy);
+      if (Math.abs(tx - px) > 0.001 || Math.abs(ty - py) > 0.001 || Math.abs(gx - cx) > 0.001 || Math.abs(gy - cy) > 0.001) raf = requestAnimationFrame(frame);
+    };
+    const kick = () => {
+      if (!raf) raf = requestAnimationFrame(frame);
     };
     const onMove = (e: PointerEvent) => {
       tx = (e.clientX / window.innerWidth) * 2 - 1;
       ty = (e.clientY / window.innerHeight) * 2 - 1;
-      if (!raf) raf = requestAnimationFrame(frame);
+      kick();
     };
     window.addEventListener("pointermove", onMove, { passive: true });
+    const off = onLift(kick);
     return () => {
       window.removeEventListener("pointermove", onMove);
+      off();
       cancelAnimationFrame(raf);
     };
   }, []);

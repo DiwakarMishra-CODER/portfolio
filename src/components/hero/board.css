@@ -356,12 +356,21 @@
   background: radial-gradient(circle at 35% 30%, #d5dadf, #a9afb5 45%, #4e545a 100%);
   box-shadow: calc(0.12 * var(--mm)) calc(0.15 * var(--mm)) calc(0.15 * var(--mm)) rgba(0, 0, 0, 0.7);
 }
+/* A cross-head, so it shows turning when it's backed out. */
 .ds-screw::after {
   content: "";
   position: absolute;
-  inset: 32%;
+  inset: 24%;
   border-radius: 50%;
-  background: #202326;
+  background:
+    linear-gradient(#202326, #202326) center / 100% 30% no-repeat,
+    linear-gradient(#202326, #202326) center / 30% 100% no-repeat,
+    radial-gradient(circle, rgba(32, 35, 38, 0.55) 0 45%, rgba(32, 35, 38, 0) 70%);
+}
+/* A standoff hole on the board, under each corner of a display module. */
+.ds-foot {
+  border-radius: 50%;
+  background: radial-gradient(circle, #050505 0 34%, #3a2f17 38%, #d0b26a 46%, #f1dfa4 56%, #9b7c3c 74%, rgba(155, 124, 60, 0) 78%);
 }
 
 /* Kapton FPC: translucent amber with its copper lines showing through. */
@@ -767,14 +776,14 @@
 
 /* Inside the board, the screens are displays, not websites: their sites'
    own menu bars go; the wordmark and the content stay. */
-.hb .sw-bar {
+:is(.hb, .mc) .sw-bar {
   background: transparent;
   border-bottom: 0;
 }
-.hb .sw-bar span:not(.sw-logo) {
+:is(.hb, .mc) .sw-bar span:not(.sw-logo) {
   display: none;
 }
-.hb .ah-links {
+:is(.hb, .mc) .ah-links {
   display: none;
 }
 

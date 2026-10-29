@@ -242,9 +242,9 @@
 }
 
 /* ?t= freeze: nothing advances until the controller pins every animation. */
-:root[data-freeze] *,
-:root[data-freeze] *::before,
-:root[data-freeze] *::after {
+:root[data-freeze] .hb *,
+:root[data-freeze] .hb *::before,
+:root[data-freeze] .hb *::after {
   animation-play-state: paused !important;
 }
 

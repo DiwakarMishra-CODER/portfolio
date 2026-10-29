@@ -5,6 +5,7 @@ import sky from "@/data/starweave-sky.json";
 import { STARWEAVE } from "@/data/figures";
 import { assemblyClock } from "../clock";
 import { T } from "../timeline";
+import { handoffOn, isLifted, onLift } from "@/components/work/lift";
 
 /*
  * Starweave's home map, rebuilt live from its real data in its own materials:
@@ -109,7 +110,10 @@ function useToday() {
   );
 }
 
-export default function StarweavePanel() {
+/** `copy`: the second one, in the module that lifts off the board as you
+ *  scroll (work/ModuleCopy) — a picture of the screen, not a link. Only one
+ *  of the two draws at a time: the board's until it lifts, then the copy's. */
+export default function StarweavePanel({ copy = false }: { copy?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const day = useToday();
   const date = day < 0 ? "" : new Date(day * 86_400_000).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -135,9 +139,9 @@ export default function StarweavePanel() {
     const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
 
     const layout = () => {
-      const box = canvas.getBoundingClientRect();
-      w = box.width;
-      h = box.height;
+      // Layout size, not the on-screen box: the panel may be tilted or scaled.
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
@@ -204,6 +208,7 @@ export default function StarweavePanel() {
 
     let raf = 0;
     let visible = true;
+    const mine = () => (copy ? isLifted() || !handoffOn() : !isLifted());
     const draw = () => {
       raf = 0;
       const now = performance.now();
@@ -309,7 +314,7 @@ export default function StarweavePanel() {
         ctx.restore();
       });
 
-      if (!reduced && visible) raf = requestAnimationFrame(draw);
+      if (!reduced && visible && mine()) raf = requestAnimationFrame(draw);
     };
 
     layout();
@@ -324,6 +329,15 @@ export default function StarweavePanel() {
       if (visible && !raf) draw();
     });
     io.observe(canvas);
+    // The board's screen hands over to the copy (and back): the new owner
+    // starts drawing; the other stops at the end of its frame. The copy also
+    // redraws when the opening ends, so it shows the finished map the moment
+    // it takes over.
+    const off = onLift(() => {
+      if (!raf) draw();
+    });
+    const mo = copy ? new MutationObserver(() => !raf && draw()) : null;
+    mo?.observe(document.documentElement, { attributes: true, attributeFilter: ["data-intro"] });
     // Redraw once the marker font arrives, so the scene names use it.
     document.fonts?.ready.then(() => {
       if (!raf) draw();
@@ -332,15 +346,22 @@ export default function StarweavePanel() {
       cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();
+      off();
+      mo?.disconnect();
     };
-  }, []);
+  }, [copy]);
 
+  const Root = copy ? "div" : "a";
   return (
-    <a
-      href="#starweave"
+    <Root
+      {...(copy
+        ? { "aria-hidden": true }
+        : {
+            href: "#starweave",
+            "aria-label": `Starweave — an influence map of indie music, ${STARWEAVE.artists} artists and ${STARWEAVE.links} sourced links. Scroll to take it apart.`,
+            "data-part": "01 · Starweave (live, from its real data)",
+          })}
       className="p-sw"
-      aria-label={`Starweave — an influence map of indie music, ${STARWEAVE.artists} artists and ${STARWEAVE.links} sourced links. Scroll to take it apart.`}
-      data-part="01 · Starweave (live, from its real data)"
     >
       <canvas ref={canvasRef} className="sw-canvas" aria-hidden="true" />
       <div className="sw-grain" aria-hidden="true" />
@@ -398,6 +419,6 @@ export default function StarweavePanel() {
           <b />
         </div>
       </div>
-    </a>
+    </Root>
   );
 }

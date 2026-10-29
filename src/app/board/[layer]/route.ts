@@ -2,6 +2,7 @@ import { benchLayer, benchPhoneLayer, boardLayer, cableLayer, partsLayer, screwL
 import { drc } from "@/components/hero/board/geom";
 import { LANDSCAPE, type PartGroup, type Spec } from "@/components/hero/board/spec";
 import { PORTRAIT } from "@/components/hero/board/spec-phone";
+import { carrierLayer } from "@/components/work/carrier";
 
 // The board's static layers, rendered once at build time and served as
 // images (they never change at runtime, so they stay out of the React tree).
@@ -16,7 +17,7 @@ const layersFor = (S: Spec, sfx: string): Record<string, () => string> => ({
   [`silk${sfx}.svg`]: () => silkLayer(REV, S),
   ...Object.fromEntries((Object.keys(S.PART_GROUPS) as PartGroup[]).map((g) => [`parts-${g}${sfx}.svg`, () => partsLayer(g, S)])),
 });
-const LAYERS: Record<string, () => string> = { ...layersFor(LANDSCAPE, ""), ...layersFor(PORTRAIT, "-p"), "screw.svg": screwLayer, "bench.svg": () => benchLayer(LANDSCAPE), "bench-p.svg": benchPhoneLayer, "cable.svg": () => cableLayer(LANDSCAPE), "cable-p.svg": () => cableLayer(PORTRAIT) };
+const LAYERS: Record<string, () => string> = { ...layersFor(LANDSCAPE, ""), ...layersFor(PORTRAIT, "-p"), "screw.svg": screwLayer, "bench.svg": () => benchLayer(LANDSCAPE), "bench-p.svg": benchPhoneLayer, "cable.svg": () => cableLayer(LANDSCAPE), "cable-p.svg": () => cableLayer(PORTRAIT), "carrier.svg": carrierLayer };
 const SPECS: Record<string, Spec> = { "board.svg": LANDSCAPE, "board-p.svg": PORTRAIT };
 
 export function generateStaticParams() {

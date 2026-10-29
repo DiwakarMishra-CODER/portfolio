@@ -32,10 +32,16 @@ export default function DisplayModule({ id, n, rect, zif, rectP, zifP, title, no
   const fpc = (r: Rect, z: Rect): Rect => ({ x: z.x + z.w / 2 - FPC_W / 2, y: z.y + 1.4, w: FPC_W, h: r.y + 1.6 - (z.y + 1.4) });
   // The driver chip sits where the cable meets the glass (mm from the module's left edge).
   const driver = (r: Rect, z: Rect) => z.x + z.w / 2 - r.x - 3.5;
+  // Its four standoff holes, hidden under it until it's lifted off (the teardown, below the hero).
+  const holes = (r: Rect) => [[1, 1], [r.w - 1, 1], [1, r.h - 1.6], [r.w - 1, r.h - 1.6]].map(([x, y]) => ({ x: r.x + x - 0.9, y: r.y + y - 0.9, w: 1.8, h: 1.8 }));
+  const [hl, hp] = [holes(rect), holes(rectP)];
   return (
     <>
-      <div className="part fpc" style={place(fpc(rect, zif), fpc(rectP, zifP), { "--hgt": 0.8, ...at(T.fpc + lag) })} aria-hidden="true" />
-      <div className="part elev zif drop" style={place(zif, zifP, { "--hgt": 1.6, ...at(T.zif + lag) })} aria-hidden="true">
+      {hl.map((h, i) => (
+        <span key={i} className="part ds-foot" style={place(h, hp[i])} aria-hidden="true" />
+      ))}
+      <div className="part fpc" data-ds={id} style={place(fpc(rect, zif), fpc(rectP, zifP), { "--hgt": 0.8, ...at(T.fpc + lag) })} aria-hidden="true" />
+      <div className="part elev zif drop" data-ds={id} style={place(zif, zifP, { "--hgt": 1.6, ...at(T.zif + lag) })} aria-hidden="true">
         <span className="zif-tab" style={{ left: "calc(-0.4 * var(--mm))" }} />
         <span className="zif-tab" style={{ right: "calc(-0.4 * var(--mm))" }} />
         <span className="zif-latch" style={at(T.latch + lag) as CSSProperties} />
