@@ -1,29 +1,35 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { ImageResponse } from "next/og";
+import { HERO_EYEBROW, HERO_LINE } from "@/data/copy";
 
-// Social card for LinkedIn / Twitter / recruiter DMs — the previous build
-// had none, so sharing the link rendered as a bare grey box, which is a
-// wasted first impression for a portfolio whose whole pitch is visual.
-//
-// Rendered by Satori, which supports only a subset of CSS: flexbox yes,
-// CSS grid no, and no external stylesheets or CSS custom properties — hence
-// the literal hex values below rather than the site's `var(--color-*)`
-// tokens. The palette is still the locked Golden Hour one (see CLAUDE.md):
-// twilight -> amber -> coral sky, cream type, gold sun-glow.
-//
-// No custom font is loaded on purpose: fetching Bricolage Grotesque here
-// would make every build depend on a Google Fonts round-trip for a 1200x630
-// PNG. The default heavy sans plus tight tracking gets close enough at
-// card size.
-
-// Deliberately NOT `runtime = "edge"`: the card is identical on every
-// request, so the default runtime lets Next prerender it once at build time
-// instead of rendering it per-request (edge would disable static generation
-// for this route).
+// The link preview (LinkedIn, recruiter DMs): the hero in the Cutaway look —
+// drafting film, alignment marks, a dimension line, the name set heavy.
+// The name is set in a vendored static instance of Archivo (Expanded,
+// ExtraBold) read from the repo — no network font fetch at build — and the
+// route avoids `runtime = "edge"`, which would disable prerendering.
 export const alt = "Diwakar Mishra — Software Engineer";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const INK = "#141413";
+const SIGNAL = "#FF4F00";
+
+function Mark({ x, y }: { x: number; y: number }) {
+  return (
+    <svg width="34" height="34" viewBox="0 0 22 22" style={{ position: "absolute", left: x, top: y }}>
+      <path d="M11 0v22M0 11h22" stroke="rgba(20,20,19,0.5)" strokeWidth="1" />
+      <circle cx="11" cy="11" r="5" fill="none" stroke="rgba(20,20,19,0.5)" strokeWidth="1" />
+    </svg>
+  );
+}
+
 export default async function OpengraphImage() {
+  const fontDir = path.join(process.cwd(), "src/assets/fonts");
+  const [display, body] = await Promise.all([
+    readFile(path.join(fontDir, "Archivo-Expanded-ExtraBold.ttf")),
+    readFile(path.join(fontDir, "Archivo-Regular.ttf")),
+  ]);
   return new ImageResponse(
     (
       <div
@@ -34,78 +40,39 @@ export default async function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "0 84px",
-          // The hero's own sky, top-left to bottom-right.
-          backgroundImage:
-            "linear-gradient(135deg, #6B8CAE 0%, #E8934A 58%, #E4674F 100%)",
+          background: "radial-gradient(120% 90% at 18% 8%, #F6F5F1 0%, #EDEBE5 60%)",
           position: "relative",
+          color: INK,
+          fontFamily: "Archivo",
         }}
       >
-        {/* Gold sun-glow, upper-right — same light source as the live hero. */}
-        <div
-          style={{
-            position: "absolute",
-            top: -190,
-            right: -150,
-            width: 620,
-            height: 620,
-            borderRadius: 620,
-            background:
-              "radial-gradient(circle, rgba(245,197,66,0.72) 0%, rgba(245,197,66,0) 70%)",
-            display: "flex",
-          }}
-        />
+        <Mark x={20} y={20} />
+        <Mark x={1146} y={20} />
+        <Mark x={20} y={576} />
+        <Mark x={1146} y={576} />
+        {/* Dimension line: 1200 px, the card's real width. */}
+        <div style={{ position: "absolute", top: 64, left: 84, right: 84, display: "flex", alignItems: "center", color: "#B83700", fontSize: 18, letterSpacing: 3 }}>
+          <div style={{ width: 1, height: 14, background: SIGNAL, display: "flex" }} />
+          <div style={{ flex: 1, height: 1.5, background: SIGNAL, opacity: 0.6, display: "flex" }} />
+          <div style={{ padding: "0 14px", display: "flex" }}>1200 PX</div>
+          <div style={{ flex: 1, height: 1.5, background: SIGNAL, opacity: 0.6, display: "flex" }} />
+          <div style={{ width: 1, height: 14, background: SIGNAL, display: "flex" }} />
+        </div>
 
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div
-            style={{
-              fontSize: 27,
-              fontWeight: 700,
-              letterSpacing: 11,
-              color: "#F4EEE4",
-              textTransform: "uppercase",
-              display: "flex",
-            }}
-          >
-            Diwakar Mishra
-          </div>
-
-          <div
-            style={{
-              marginTop: 20,
-              fontSize: 136,
-              fontWeight: 800,
-              lineHeight: 0.86,
-              letterSpacing: -4,
-              color: "#F4EEE4",
-              textTransform: "uppercase",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <span>Software</span>
-            <span>Engineer</span>
-          </div>
-
-          {/* MUST stay byte-identical to the hero tagline in Hero.tsx (it
-              appears there twice, mobile + desktop). These are independent
-              literals with no shared constant and have drifted once already —
-              change all three together or not at all. */}
-          <div
-            style={{
-              marginTop: 34,
-              fontSize: 31,
-              color: "#F4EEE4",
-              opacity: 0.94,
-              maxWidth: 830,
-              lineHeight: 1.35,
-              display: "flex",
-            }}
-          >
-            I build complete products — data model, algorithm, interface.
-          </div>
+        <div style={{ fontSize: 22, letterSpacing: 4, textTransform: "uppercase", color: "#5C5B56", display: "flex" }}>{HERO_EYEBROW}</div>
+        <div style={{ marginTop: 18, fontFamily: "Archivo Expanded", fontSize: 124, fontWeight: 800, lineHeight: 0.9, letterSpacing: -3, textTransform: "uppercase", display: "flex", flexDirection: "column" }}>
+          <span>Diwakar</span>
+          <span>Mishra</span>
+        </div>
+        <div style={{ marginTop: 30, fontSize: 34, display: "flex" }}>{HERO_LINE}</div>
+        <div style={{ position: "absolute", bottom: 64, left: 84, fontSize: 19, letterSpacing: 2.5, textTransform: "uppercase", color: "#5C5B56", display: "flex" }}>
+          <span style={{ color: "#B83700" }}>01</span>&nbsp;&nbsp;Starweave&nbsp;&nbsp;·&nbsp;&nbsp;<span style={{ color: "#B83700" }}>02</span>&nbsp;&nbsp;Arthouse Atlas&nbsp;&nbsp;—&nbsp;&nbsp;two products, taken apart
         </div>
       </div>
     ),
-    size
+    { ...size, fonts: [
+        { name: "Archivo", data: body, weight: 400, style: "normal" },
+        { name: "Archivo Expanded", data: display, weight: 800, style: "normal" },
+      ] }
   );
 }

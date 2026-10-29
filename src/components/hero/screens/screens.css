@@ -1,0 +1,606 @@
+/* The two live screens — each project rebuilt in its own real materials
+   (values from starweave/app/globals.css + ForceGraph.tsx, and
+   arthouse/frontend/src/index.css + TheScreen.jsx). Mounted inside the
+   board's display modules. */
+
+/* ════════════════════════════════════════════════════════════
+   STARWEAVE PANEL — rebuilt in Starweave's own materials
+   (values from starweave/app/globals.css + ForceGraph.tsx).
+   ════════════════════════════════════════════════════════════ */
+
+.p-sw {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  --sw-ink: #1c1724;
+  --sw-paper: #f6f1e4;
+  background: #1a1520;
+  container-type: size;
+  color: #edeaf7;
+}
+.sw-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Starweave's film-grain overlay (.graph-container::after). */
+.sw-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0.05;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Its nav strip. */
+.sw-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  height: 34px;
+  padding: 0 14px;
+  background: rgba(36, 30, 43, 0.94);
+  border-bottom: 1px solid rgba(243, 227, 200, 0.1);
+  font-family: system-ui, sans-serif;
+  font-size: 12.5px;
+  color: rgba(237, 234, 247, 0.78);
+}
+.sw-logo {
+  font-family: var(--font-marker), cursive;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  color: #e9a65a;
+}
+
+/* Its "Today's record" ticket stub (.today-tag) — ours shows today's link. */
+.sw-ticket {
+  position: absolute;
+  z-index: 6;
+  left: 16px;
+  bottom: 16px;
+  width: min(268px, 46cqw);
+  padding: 0.75rem 0.9rem 0.85rem 2.6rem;
+  background: #e0d4bc;
+  border-radius: 5px;
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35), 0 12px 30px rgba(0, 0, 0, 0.35);
+  color: #1c1724;
+  font-family: system-ui, sans-serif;
+  rotate: -1.2deg;
+}
+:root[data-intro~="play"] .sw-ticket.once {
+  animation: ticket-drop 520ms cubic-bezier(0.3, 1.6, 0.5, 1) calc(var(--t-boot1) + 1150ms - var(--shift)) backwards;
+}
+@keyframes ticket-drop {
+  from { opacity: 0; transform: translateY(-46px) rotate(-7deg); }
+}
+.sw-ticket::before {
+  content: "";
+  position: absolute;
+  left: 2rem;
+  top: 6px;
+  bottom: 6px;
+  border-left: 2px dotted rgba(28, 23, 36, 0.35);
+}
+.sw-stub {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2rem;
+  display: grid;
+  place-items: center;
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  border-radius: 0 5px 5px 0;
+  background: #d7a39b;
+  font-family: var(--font-plex), monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.sw-eyebrow {
+  font-family: var(--font-plex), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8f3119;
+}
+.sw-name {
+  margin-top: 0.15rem;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: 1.18rem;
+  line-height: 1.15;
+}
+.sw-quote {
+  margin-top: 0.4rem;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-size: 0.86rem;
+  line-height: 1.38;
+  color: rgba(28, 23, 36, 0.88);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sw-caption {
+  margin-top: 0.3rem;
+  font-family: var(--font-plex), monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(28, 23, 36, 0.7);
+}
+/* Source stamp (.source-ticket--small). */
+.sw-source {
+  display: inline-flex;
+  margin-top: 0.45rem;
+  border: 1.5px solid #1c1724;
+  border-radius: 4px;
+  background: #f6eedd;
+  box-shadow: 2px 2px 0 #1c1724;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.sw-source span:first-child {
+  padding: 0.24rem 0.42rem 0.2rem;
+  background: #a8261e;
+  color: #fbf3e2;
+  font-family: var(--font-plex), monospace;
+  font-size: 0.54rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.sw-source span:last-child {
+  padding: 0.22rem 0.5rem 0.2rem 0.45rem;
+  border-left: 1.5px solid #1c1724;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+/* Masking tape — the one thing at an angle — slapped on after it lands. */
+.sw-tape {
+  position: absolute;
+  top: -9px;
+  right: 18px;
+  width: 58px;
+  height: 18px;
+  rotate: 8deg;
+  background: rgba(238, 226, 196, 0.78);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  clip-path: polygon(3% 0, 97% 4%, 100% 100%, 0 96%);
+}
+:root[data-intro~="play"] .sw-tape.once {
+  animation: tape-slap 260ms cubic-bezier(0.2, 0, 0, 1) calc(var(--t-boot1) + 1420ms - var(--shift)) backwards;
+}
+@keyframes tape-slap {
+  from { opacity: 0; transform: scale(1.5) translateY(-10px); }
+}
+
+/* Its pocket player, docked (.player-float__mini). */
+.sw-player {
+  --layer: #e8c87a;
+  position: absolute;
+  z-index: 6;
+  right: 16px;
+  bottom: 14px;
+  width: 128px;
+  padding: 8px 8px 10px;
+  border: 2px solid var(--sw-ink);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--layer) 45%, var(--sw-paper));
+  box-shadow: 0 0 0 2px var(--sw-paper), 4px 5px 0 1px var(--sw-ink);
+}
+:root[data-intro~="play"] .sw-player.once {
+  animation: player-in 620ms cubic-bezier(0.2, 0, 0, 1) calc(var(--t-boot1) + 1250ms - var(--shift)) backwards;
+}
+@keyframes player-in {
+  from { opacity: 0; transform: translateX(140%) rotate(8deg); }
+}
+.sw-lead {
+  position: absolute;
+  bottom: calc(100% - 3px);
+  right: -40px;
+  width: 90px;
+  height: 60px;
+  overflow: visible;
+}
+.sw-lead path {
+  fill: none;
+  stroke: var(--sw-paper);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.sw-lcd {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  height: 78px;
+  padding: 5px 7px 0;
+  border: 2px solid var(--sw-ink);
+  border-radius: 8px;
+  background: #cfdcd6;
+  color: var(--sw-ink);
+  font-family: var(--font-plex), monospace;
+  overflow: hidden;
+}
+.sw-lcd-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(28, 23, 36, 0.35);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sw-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 7px;
+}
+.sw-eq i {
+  width: 2px;
+  height: 7px;
+  background: var(--sw-ink);
+  transform-origin: bottom;
+  animation: eq 0.9s ease-in-out infinite alternate;
+}
+.sw-eq i:nth-child(2) { animation-duration: 0.62s; }
+.sw-eq i:nth-child(3) { animation-duration: 0.78s; }
+.sw-eq i:nth-child(4) { animation-duration: 0.55s; }
+@keyframes eq {
+  from { transform: scaleY(0.2); }
+}
+.sw-lcd-name {
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.12;
+}
+.sw-lcd-ticker {
+  font-size: 0.64rem;
+  white-space: nowrap;
+}
+.sw-lcd-ticker > span {
+  display: inline-block;
+  animation: ticker 11s linear infinite;
+}
+@keyframes ticker {
+  to { translate: -50% 0; }
+}
+.sw-wheel {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  margin: 9px auto 0;
+  border: 2px solid var(--sw-ink);
+  border-radius: 50%;
+  background: var(--sw-paper);
+  font-family: var(--font-plex), monospace;
+  font-size: 0.54rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sw-ink);
+}
+.sw-wheel span {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  translate: -50% 0;
+}
+.sw-wheel b {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--sw-ink);
+  border-radius: 50%;
+  background: var(--sw-ink);
+  color: color-mix(in srgb, var(--layer) 35%, var(--sw-paper));
+}
+/* Pause: the song is playing. */
+.sw-wheel b::after {
+  content: "";
+  width: 10px; /* border-box: two 3.5px bars, a 3px gap */
+  height: 12px;
+  border-left: 3.5px solid currentColor;
+  border-right: 3.5px solid currentColor;
+}
+
+@container (max-height: 420px) {
+  .sw-player { scale: 0.8; transform-origin: bottom right; }
+  .sw-ticket { scale: 0.86; transform-origin: bottom left; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   ARTHOUSE PANEL — the film plays its own opening titles
+   (values from arthouse/frontend/src/index.css + TheScreen.jsx).
+   ════════════════════════════════════════════════════════════ */
+
+.p-ah {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  --light-film: #4c59e6;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 30%, rgba(255, 214, 160, 0.055), transparent 70%),
+    radial-gradient(ellipse 90% 80% at 50% 40%, #1a1714 0%, #110f0d 40%, #0a0908 70%, #040404 100%);
+  color: #f1ece2;
+  container-type: size;
+}
+
+/* The gate: a strip of three frames, pulled down through it by the claw. */
+.ah-gate {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.ah-gate.once {
+  /* Sub-pixel gate weave once the frame has landed. */
+  animation: gate-weave 0.42s steps(1, end) infinite;
+}
+:root[data-intro~="play"] .ah-gate.once {
+  animation-delay: calc(var(--t-boot2) + 1900ms - var(--shift));
+}
+@keyframes gate-weave {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(0.5px, -0.6px); }
+  40% { transform: translate(-0.4px, 0.4px); }
+  60% { transform: translate(0.6px, 0.3px); }
+  80% { transform: translate(-0.3px, -0.5px); }
+}
+.ah-strip {
+  position: absolute;
+  inset: 0;
+  transform: translateY(212%);
+}
+:root[data-intro~="play"] .ah-strip.once {
+  animation: gate-pull 1880ms linear calc(var(--t-boot2) + 0ms - var(--shift)) backwards;
+}
+.ah-frame {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: #000;
+}
+.ah-frame:nth-child(1) { top: 0; }
+.ah-frame:nth-child(2) { top: -106%; }
+.ah-frame:nth-child(3) { top: -212%; overflow: hidden; }
+/* Black frame lines between frames, as on real film. */
+.ah-frame::before,
+.ah-frame::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6%;
+  background: #000;
+  z-index: 2;
+}
+.ah-frame::before { bottom: 100%; }
+.ah-frame::after { top: 100%; }
+.ah-frame img {
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+.ah-frame.is-land img.once {
+  transform-origin: 50% 30%;
+  animation: breath-push 9s cubic-bezier(0.2, 0.6, 0.2, 1) calc(var(--t-boot2) + 1880ms - var(--shift)) both;
+}
+@keyframes breath-push {
+  from { transform: scale(1.001); }
+  to { transform: scale(1.075); }
+}
+/* Hold frame 1, claw-pull to frame 2 (560ms), hold, claw-pull to the
+   title frame with Arthouse's own overshoot: +1.8%, -0.6%, settle. */
+@keyframes gate-pull {
+  0% { transform: translateY(0); }
+  22% { transform: translateY(0); animation-timing-function: cubic-bezier(0.55, 0, 0.15, 1); }
+  52% { transform: translateY(106%); }
+  61% { transform: translateY(106%); animation-timing-function: cubic-bezier(0.55, 0, 0.15, 1); }
+  85% { transform: translateY(calc(212% + 1.8%)); }
+  94% { transform: translateY(calc(212% - 0.6%)); }
+  100% { transform: translateY(212%); }
+}
+
+/* Its still grain, jumping 8 positions at 12fps. */
+.ah-grain {
+  position: absolute;
+  inset: -64px;
+  z-index: 4;
+  opacity: 0.5;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: projected-grain 667ms steps(1, end) infinite;
+}
+@keyframes projected-grain {
+  0% { transform: translate(0, 0); }
+  12.5% { transform: translate(-40px, 22px); }
+  25% { transform: translate(34px, -46px); }
+  37.5% { transform: translate(-58px, -14px); }
+  50% { transform: translate(50px, 38px); }
+  62.5% { transform: translate(-18px, 56px); }
+  75% { transform: translate(60px, -8px); }
+  87.5% { transform: translate(-30px, -54px); }
+}
+.ah-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: radial-gradient(ellipse 75% 60% at 50% 55%, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.35) 70%, rgba(0, 0, 0, 0.2));
+}
+/* One frame of black when the credits cut in. */
+.ah-shutter {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+:root[data-intro~="play"] .ah-shutter.once {
+  animation: shutter 110ms steps(1, end) calc(var(--t-boot2) + 1890ms - var(--shift));
+}
+@keyframes shutter {
+  0%, 100% { opacity: 1; }
+}
+
+.ah-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 16px;
+  background: linear-gradient(180deg, rgba(5, 5, 5, 0.85), transparent);
+}
+.ah-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 300;
+  font-size: 16px;
+  color: #f1ece2;
+}
+.ah-logo i {
+  font-style: italic;
+  color: #d9ad62;
+}
+.ah-logo span {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px #d9ad62;
+  font-size: 11px;
+  font-style: italic;
+  color: #d9ad62;
+}
+.ah-links {
+  display: flex;
+  gap: 16px;
+  font-family: var(--font-oswald), "Arial Narrow", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #cbc5ba;
+}
+
+.ah-credits {
+  position: absolute;
+  inset: 40px 0 34px;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2.2cqh, 20px);
+  text-align: center;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.7), 0 2px 22px rgba(0, 0, 0, 0.85);
+}
+.ah-face {
+  position: relative;
+  width: clamp(46px, 11cqh, 76px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+.ah-face span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #000;
+}
+.ah-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1);
+}
+:root[data-intro~="play"] .ah-face span.once {
+  animation: face-iris 760ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--t-boot2) + 1950ms - var(--shift)) both;
+}
+@keyframes face-iris {
+  from { clip-path: circle(0% at 50% 50%); }
+  to { clip-path: circle(50% at 50% 50%); }
+}
+.ah-face::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--light-film) 67%, transparent),
+    0 0 40px color-mix(in srgb, var(--light-film) 27%, transparent);
+}
+.ah-kicker {
+  font-family: var(--font-oswald), "Arial Narrow", sans-serif;
+  font-size: clamp(10px, 1.7cqh, 13px);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #e0dad0;
+}
+.ah-director {
+  display: inline-block;
+  margin-top: 6px;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-size: clamp(34px, 12cqh, 76px);
+  line-height: 1.02;
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 10px;
+  text-decoration-color: color-mix(in srgb, var(--light-film) 60%, transparent);
+}
+.ah-meta {
+  font-family: var(--font-oswald), "Arial Narrow", sans-serif;
+  font-size: clamp(9.5px, 1.55cqh, 12.5px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #cbc5ba;
+}
+.ah-film {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(15px, 2.6cqh, 22px);
+  color: color-mix(in srgb, var(--light-film) 40%, #f1ece2);
+}
+:root[data-intro~="play"] .ah-rise.once {
+  animation: card-rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation-delay: calc(var(--t-boot2) + var(--at) - var(--shift));
+}
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(18px); }
+}
+.ah-credit {
+  position: absolute;
+  z-index: 7;
+  right: 14px;
+  bottom: 12px;
+  font-family: var(--font-oswald), "Arial Narrow", sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(203, 197, 186, 0.6);
+}
+

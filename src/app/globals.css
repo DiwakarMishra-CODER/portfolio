@@ -1,279 +1,98 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────
+   Cutaway — design tokens. Source of truth: CLAUDE.md.
+   Raw values live on :root (so plain CSS can use them); @theme
+   exposes them as Tailwind utilities (bg-film, text-graphite…).
+   ───────────────────────────────────────────────────────────── */
 :root {
-  --color-cream: #f4eee4;
-  --color-ink: #201e1b;
-  --color-muted: #6b655c;
-  --color-amber: #e8934a;
-  --color-coral: #e4674f;
-  --color-twilight: #6b8cae;
-  --color-gold: #f5c542;
+  --film: #edebe5;
+  --sheet: #f7f6f2;
+  --ink: #141413;
+  --graphite: #5c5b56;
+  --hairline: rgba(20, 20, 19, 0.14);
+  --hairline-strong: rgba(20, 20, 19, 0.32);
+  --signal: #ff4f00;
+  --signal-ink: #b83700;
+
+  /* Motion: mechanical. Glide for camera moves, land for parts arriving
+     (fast, then a hard exact stop — never an overshoot), linear for lines. */
+  --ease-glide: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-land: cubic-bezier(0.2, 0, 0, 1);
+
+  --gutter: clamp(20px, 4.4vw, 64px);
 }
 
 @theme inline {
-  --color-cream: var(--color-cream);
-  --color-ink: var(--color-ink);
-  --color-muted: var(--color-muted);
-  --color-amber: var(--color-amber);
-  --color-coral: var(--color-coral);
-  --color-twilight: var(--color-twilight);
-  --color-gold: var(--color-gold);
+  --color-film: var(--film);
+  --color-sheet: var(--sheet);
+  --color-ink: var(--ink);
+  --color-graphite: var(--graphite);
+  --color-hairline: var(--hairline);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
 
-  --font-display: var(--font-display-face), system-ui, sans-serif;
-  --font-body: var(--font-hanken-grotesk), system-ui, sans-serif;
+  --font-display: var(--font-mona), system-ui, sans-serif;
+  --font-body: var(--font-mona), system-ui, sans-serif;
+  --font-mono: var(--font-mona), system-ui, sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
+  background: var(--film);
 }
 
 body {
-  background: var(--color-cream);
-  color: var(--color-ink);
+  background: var(--film);
+  color: var(--ink);
   font-family: var(--font-body);
+  font-variation-settings: "wdth" 100;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Visible, on-brand keyboard focus states throughout the site */
+::selection {
+  background: var(--signal);
+  color: #fff;
+}
+
 :focus-visible {
-  outline: 2px solid var(--color-coral);
+  outline: 2px solid var(--signal);
   outline-offset: 3px;
-  border-radius: 2px;
-}
-
-/* CursorFollow.tsx's star + glow ride ALONGSIDE the normal system cursor
-   (not a replacement) — the system cursor is deliberately left alone here. */
-
-/* Golden-hour sky — BOLD "Vivid Sky" for the hero (see GoldenHourSky.tsx):
-   a full-bleed saturated sunset gradient. The sun glow drifts almost
-   imperceptibly (low amplitude, 20–40s loops) via the classes below — the
-   base gradient itself is static. Disabled entirely under
-   prefers-reduced-motion. */
-@keyframes sky-glow-drift-a {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(1.5%, 2%, 0) scale(1.04);
-  }
-}
-
-@keyframes sky-glow-drift-b {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1.02);
-  }
-  50% {
-    transform: translate3d(-2%, -1.5%, 0) scale(0.97);
-  }
-}
-
-.sky-glow-a {
-  animation: sky-glow-drift-a 28s ease-in-out infinite;
-}
-
-.sky-glow-b {
-  animation: sky-glow-drift-b 38s ease-in-out infinite;
-}
-
-/* Site-wide aurora — three large, independently-drifting colour blooms
-   behind all content below the hero (see AmbientBackground.tsx). Each
-   keyframe has its own translate/scale path and duration so the three
-   blooms never sync into a single unified pulse. */
-@keyframes aurora-drift-a {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(4%, 3%, 0) scale(1.08);
-  }
-}
-
-@keyframes aurora-drift-b {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1.05);
-  }
-  50% {
-    transform: translate3d(-5%, 4%, 0) scale(0.95);
-  }
-}
-
-@keyframes aurora-drift-c {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(0.97);
-  }
-  50% {
-    transform: translate3d(3%, -5%, 0) scale(1.1);
-  }
-}
-
-.aurora-drift-a {
-  animation: aurora-drift-a 18s ease-in-out infinite;
-}
-
-.aurora-drift-b {
-  animation: aurora-drift-b 21s ease-in-out infinite;
-}
-
-.aurora-drift-c {
-  animation: aurora-drift-c 16s ease-in-out infinite;
-}
-
-/* Contact's "living sunset" — the closing bookend to the hero's living sky.
-   Same transform-only drift technique as the aurora above (translate +
-   scale, GPU-friendly, no layout properties), tuned warmer for the finale
-   (see Contact.tsx) — and, unlike the aurora, tuned to be CLEARLY visible
-   rather than "felt, not noticed": the first pass at these ranges (3-4%
-   translate, ~16-20s) matched the aurora's own subtlety almost exactly and
-   read as static. Durations/ranges are the tunable knobs here — edit
-   directly; each is different so nothing pulses in sync.
-   .sunset-glow-drift is the low "sun" — side-to-side emphasis + a
-   pronounced size/opacity pulse, distinct from the aurora's pure
-   translate+scale. */
-@keyframes sunset-glow-drift {
-  0%,
-  100% {
-    transform: translateX(-50%) translateX(0%) translateY(0%) scale(0.88);
-    opacity: 0.45;
-  }
-  50% {
-    transform: translateX(-50%) translateX(12%) translateY(-7%) scale(1.28);
-    opacity: 1;
-  }
-}
-
-@keyframes sunset-bloom-drift-a {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(9%, -8%, 0) scale(1.2);
-  }
-}
-
-@keyframes sunset-bloom-drift-b {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1.12);
-  }
-  50% {
-    transform: translate3d(-10%, 7%, 0) scale(0.86);
-  }
-}
-
-.sunset-glow-drift {
-  /* Static fallback so it stays centered (left: 50% needs this counter-
-     translate) even under prefers-reduced-motion, where the animation
-     below — and the translateX(-50%) baked into its own keyframe — is
-     disabled entirely. */
-  transform: translateX(-50%);
-  animation: sunset-glow-drift 12s ease-in-out infinite;
-}
-
-.sunset-bloom-drift-a {
-  animation: sunset-bloom-drift-a 14s ease-in-out infinite;
-}
-
-.sunset-bloom-drift-b {
-  animation: sunset-bloom-drift-b 16s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sky-glow-a,
-  .sky-glow-b,
-  .aurora-drift-a,
-  .aurora-drift-b,
-  .aurora-drift-c,
-  .sunset-glow-drift,
-  .sunset-bloom-drift-a,
-  .sunset-bloom-drift-b {
-    animation: none !important;
-  }
-
-  * {
-    scroll-behavior: auto !important;
+  html {
+    scroll-behavior: auto;
   }
 }
 
-/* About's bento grid (About.tsx) — shared "crafted" tile shell. Every tile
-   gets the same radius/padding/hairline-border/layered-shadow/top-sheen;
-   only each tile's own background gradient and border COLOR vary (set
-   inline per tile, since each is a distinct warm tint — see About.tsx).
-   The hairline border color set here (rgba(255,255,255,.55)) is the
-   default for tiles that don't override it (the neutral Statement tile);
-   themed tiles override borderColor inline. */
-.bento-tile {
-  position: relative;
-  overflow: hidden;
-  border-radius: 26px;
-  padding: 30px 32px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    0 14px 34px rgba(120, 80, 40, 0.09);
-  transition:
-    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+/* Display words: Archivo set wide and heavy — reads machined. */
+.type-display {
+  font-family: var(--font-display);
+  font-weight: 820;
+  font-variation-settings: "wdth" 125;
+  letter-spacing: -0.02em;
+  line-height: 0.86;
+  text-transform: uppercase;
 }
 
-/* Top-sheen — a soft lit highlight across the top 40% of the tile, giving
-   it a tactile, lit-from-above feel. Clipped to the tile's own rounded
-   corners by the parent's `overflow: hidden` above. */
-.bento-tile::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 40%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent);
-  pointer-events: none;
+/* Labels, callouts, part numbers, dimension values. Small, tracked. */
+.type-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 450;
+  letter-spacing: 0.08em;
+  line-height: 1.45;
+  text-transform: uppercase;
 }
 
-/* Gentle hover lift — fine-pointer only (no sticky hover state on touch). */
-@media (hover: hover) and (pointer: fine) {
-  .bento-tile:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      0 20px 44px rgba(120, 80, 40, 0.14);
-  }
-}
-
-/* Soft text-shadow so cream hero text stays legible across the vivid
-   sunset gradient's lighter amber mid-band — a deliberate, minimal fix
-   (favored over a scrim, which would dim the gradient's saturation). */
-.hero-text-glow {
-  text-shadow:
-    0 2px 20px rgba(32, 30, 27, 0.35),
-    0 1px 4px rgba(32, 30, 27, 0.3);
-}
-
-/* The big "PRODUCT MANAGER" headline uses its own, lighter shadow: a
-   single soft, ZERO-OFFSET ambient glow. The two-layer .hero-text-glow
-   above (with its 1-2px offsets) reads fine at nav/eyebrow scale but looked
-   like a dated hard drop-shadow blown up to display-type size. */
-.hero-heading-shadow {
-  text-shadow: 0 0 28px rgba(32, 30, 27, 0.3);
-}
-
-/* Contact's email CTA — colors are driven by --email-color/--email-hover-color
-   custom properties, set inline from Contact.tsx's EMAIL_COLOR/
-   EMAIL_HOVER_COLOR constants (the single source of truth for tuning), not
-   duplicated here. currentColor (the underline, via bg-current) tracks
-   whichever value is live automatically. */
-.email-cta {
-  color: var(--email-color);
-  transition:
-    color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    text-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.email-cta:hover {
-  color: var(--email-hover-color);
-  text-shadow: 0 0 28px rgba(228, 103, 79, 0.4);
+/* Drafting film: the base material. A static grain plus one soft pool of
+   light from the upper left, so the page reads as a lit physical sheet,
+   not a flat #EDEBE5 fill. Static — nothing here animates. */
+.film-surface {
+  background-color: var(--film);
+  background-image:
+    radial-gradient(120% 90% at 18% 8%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }

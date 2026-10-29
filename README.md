@@ -1,82 +1,49 @@
 # Diwakar Mishra — Portfolio
 
-Personal portfolio site, built with Next.js. Three real projects, each a
-working web app with its own live URL and source: an influence graph for
-indie music, a recommender for arthouse cinema, and an AI-driven mock
-interview platform.
+**The Board.** The first screen is one working circuit board, and every part on it is something I built or earned.
 
-**Live:** [diwakar-mishra-portfolio.vercel.app](https://diwakar-mishra-portfolio.vercel.app)
+On load, the board gets made. A laser engraves my name into the processor. Copper grows out of it, the green solder mask floods over, the parts drop into place. The USB cable clicks in and the board powers on: the current runs along every trace, and both projects boot on their own screens. The menu is four real switches; X-ray is a DIP switch.
 
-![Diwakar Mishra — Software Engineer](.github/readme-hero.png)
+Below that, each project's real algorithm runs on its real data. Pick two artists and Starweave's route finder searches 945 sourced links for the best-documented chain between them. Pick three films and Arthouse Atlas's recommender scores them while you watch.
 
-## Projects showcased
+## Projects taken apart
 
 | | |
 | --- | --- |
-| **[Starweave](https://starweaves.vercel.app/)** | An interactive influence graph of 297 indie artists and 1,053 sourced connections. Weighted-Dijkstra search over citation quality, laid out with heavy-path decomposition and interval-graph colouring. ([source](https://github.com/DiwakarMishra-CODER/starweave)) |
-| **[Arthouse Atlas](https://arthouse-atlas.vercel.app/)** | A recommender for 497 curated arthouse films. Per-user taste profile weighted by interaction type, plus a separate scoring pass for how canonical each film is. ([source](https://github.com/DiwakarMishra-CODER/Arthouse-Atlas)) |
-| **[CareerSaarthi](https://careersaarthi.vercel.app/)** | A voice-based mock interview coach — live transcription, timed auto-submit, and LLM scoring on clarity and structure. ([source](https://github.com/DiwakarMishra-CODER/CareerSaarthi)) |
+| **[Starweave](https://starweaves.vercel.app/)** | An influence map of indie music: 296 artists, 945 links, every one with a named source (696 in the artist's own words). The machine is the live site's weighted Dijkstra, ported line for line. ([source](https://github.com/DiwakarMishra-CODER/starweave)) |
+| **[Arthouse Atlas](https://arthouse-atlas.vercel.app/)** | A film recommender for people new to arthouse cinema: 1,120 films, EASE trained on 32,000,204 MovieLens ratings. Tested on 11,090 held-out people: 34.8% found their next favourite in its top 10, against 7.4% for the old engine. ([source](https://github.com/DiwakarMishra-CODER/Arthouse-Atlas)) |
 
-## Stack
+## How it's built
 
-- **Next.js 16** (App Router) + **TypeScript**
-- **Tailwind CSS v4** (`@theme inline`)
-- **[motion](https://motion.dev)** (the successor to Framer Motion), imported from `motion/react`
-- Fonts via `next/font/google` — Bricolage Grotesque (display) + Hanken Grotesk (body)
+- **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tailwind CSS v4**. No animation library and no WebGL. The opening is CSS keyframes on one shared clock, so it plays before hydration; the laser, the copper and the current are Canvas.
+- **The board is real geometry.** One spec per layout (176 × 104 mm landscape, 64 × 232 mm for phones) generates every layer as SVG. A design-rule check fails the dev build if a trace doesn't end on a pad.
+- **Type:** Mona Sans. The name is Bodoni Moda capitals, shipped as path data. Each project keeps its own fonts inside its screen.
+- **The machines are the real code.** `src/lib/machines/` ports Starweave's `findBestSourcedPath` and Arthouse's `rankCandidates`. Both were checked against the originals on 1,161 routes and 321 film triples, with identical results.
+- **The test bench is real too.** Its live checks run in your browser against the shipped data: every link sourced, no denied influence drawn, every printed figure re-derived. Its recorded checks say so and carry their date.
+- **X-ray mode.** Press `X` to outline and name every part, with live frame rate and page weight.
+- **Light.** All text in the server HTML, readable with JavaScript off. Nothing animates under reduced motion, and any key, click or scroll skips the opening.
 
-## Design system
+## Updating the data
 
-Built around a locked palette and motion language ("Golden Hour"): a
-twilight → amber → coral sunset gradient, one cubic-bezier ease-out curve
-used everywhere, and a warm cream/ink pairing for the calm sections. Every
-section shares the same tile shell, reveal mechanics, and per-project accent
-color, so three visually distinct project cards read as one system rather
-than three one-off components.
+The machines read generated files in `public/data/`. Regenerate them from local checkouts of the two projects:
 
-## A few implementation details
+```sh
+node scripts/data/starweave.mjs ../starweave           # reads its built public/graph.json
+node scripts/data/arthouse.mjs ../Arthouse-Atlas       # reads backend/data/recs, fetches titles from the live API
+```
 
-Not exhaustive — the parts that were the least obvious to get right.
+Then update the printed figures in `src/data/figures.ts`. The test bench fails loudly if the Starweave ones drift from the data. Re-run the link check with the dev server up:
 
-- **Reduced-motion and pointer-type checks are hydration-safe.** `usePrefersReducedMotion`, `useHasFinePointer`, and `useHasMounted` (`src/lib/`) all use React's `useSyncExternalStore` rather than a `useEffect` + `useState` flash, so there's no first-paint flicker and no hydration mismatch warning.
-- **Animated stat counters render their final value in the server-rendered HTML**, not their starting `0`. The count-up only takes over once the client has mounted — otherwise a crawler or a link-preview scraper that doesn't execute JavaScript sees zeroes where the strongest numbers on the page should be.
-- **The Open Graph card is generated at build time**, not on the edge. `src/app/opengraph-image.tsx` uses `next/og`'s `ImageResponse` with the default runtime, so the card is static and prerendered rather than rendered per-request.
-- **The favicon is drawn as SVG paths, not `<text>`.** A favicon rasterizes at 16px in a context with no guarantee a given font is installed; paths render identically regardless.
-- **Every stat, claim, and delta on the page traces to a real, re-runnable number** — no adoption/traffic claims, and any percentage keeps its baseline visible (e.g. "70% to 11%," never "84% better").
+```sh
+npm run dev
+node scripts/check-links.mjs http://localhost:3000     # writes src/data/linkcheck.json
+```
 
-## Running locally
+## Run
 
-```bash
-git clone https://github.com/DiwakarMishra-CODER/portfolio.git
-cd portfolio
+```sh
 npm install
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). `npm run build` produces a
-production build; every route is statically prerendered.
-
-## Structure
-
-```
-src/
-├── app/
-│   ├── layout.tsx           # fonts, metadata, mounts the site-wide layers
-│   ├── page.tsx             # composes Hero / Projects / About / Contact
-│   ├── opengraph-image.tsx  # social card, generated at build time
-│   └── icon.svg             # favicon
-├── components/              # one file per section + shared site-wide layers
-│   ├── Hero.tsx / GoldenHourSky.tsx / HeroEmbers.tsx
-│   ├── Projects.tsx / ProjectCard.tsx
-│   ├── About.tsx
-│   ├── Contact.tsx
-│   ├── AmbientBackground.tsx / CursorFollow.tsx   # mounted once, site-wide
-│   └── ...
-└── lib/                      # hydration-safe hooks (see above)
-```
-
-## Contact
-
-[diwakarmishraemail@gmail.com](mailto:diwakarmishraemail@gmail.com) ·
-[LinkedIn](https://www.linkedin.com/in/diwakar-mishra-dev) ·
-[GitHub](https://github.com/DiwakarMishra-CODER) ·
-[LeetCode](https://leetcode.com/u/DiwakarCracksIt/)
+Design and engineering decisions are recorded in [`CLAUDE.md`](CLAUDE.md).

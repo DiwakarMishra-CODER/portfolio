@@ -1,0 +1,21 @@
+{
+  "source": "arthouse-atlas · Mulholland Drive",
+  "title": "Mulholland Drive",
+  "year": 2001,
+  "role": "Written and directed by",
+  "director": "David Lynch",
+  "meta": [
+    "United States",
+    2001,
+    "147 minutes",
+    "in English and Spanish"
+  ],
+  "light": "#4c59e6",
+  "frames": [
+    "/work/opening/frame-1.jpg",
+    "/work/opening/frame-2.jpg",
+    "/work/opening/frame-3.jpg"
+  ],
+  "portrait": "/work/opening/director.jpg",
+  "link": "https://arthouse-atlas.vercel.app/movie/6953c208df81e631d5708e60"
+}

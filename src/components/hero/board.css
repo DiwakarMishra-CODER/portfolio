@@ -1,0 +1,887 @@
+/* ─────────────────────────────────────────────────────────────
+   The hero board — materials for the HTML parts. The static board
+   (mask, traces, pads, silkscreen, small parts) is two SVG images
+   from /board/*. Everything here sits on the same millimetre grid:
+   `--mm` is px per board-mm, set once on .hb-board.
+
+   One lamp: softbox upper-left. Highlights on top-left edges,
+   shadows down-right. No filter / backdrop-filter / blend modes.
+   ───────────────────────────────────────────────────────────── */
+
+@property --mm {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 8px;
+}
+
+.hb {
+  --silk: #e8e6df;
+  --laser: #a6a59f;
+  --lit: #ff4f00;
+  position: relative;
+  background: #121c28; /* the mat (see .hb-bench) */
+  color: var(--silk);
+  font-family: var(--font-mona), system-ui, sans-serif;
+}
+
+.hb-view {
+  position: relative;
+  height: 100svh;
+  min-height: 600px;
+  overflow: hidden;
+}
+
+.hb-stage {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+/* px per millimetre: the board (176 × 104 mm) fits the viewport, with room
+   round it for the bench to show. Shared by everything on the stage. */
+.hb-camera,
+.hb-bench {
+  --mm: min((100cqw - 96px) / 176, (100cqh - 88px) / 104);
+}
+
+/* The workbench: a slate-blue anti-static mat — its fine dot grid on the
+   board's own millimetres (10 mm), a fine rubber grain, a lamp pool from the
+   upper left (the same lamp as the board's), falling off to the corners.
+   Static: painted once. */
+.hb-bench {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 62% at 26% 16%, rgba(255, 236, 200, 0.13), rgba(255, 236, 200, 0.04) 45%, rgba(255, 236, 200, 0) 75%),
+    radial-gradient(120% 120% at 50% 45%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.62) 100%),
+    radial-gradient(circle, rgba(170, 200, 228, 0.24) 0 calc(0.22 * var(--mm)), rgba(170, 200, 228, 0) calc(0.34 * var(--mm))),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    linear-gradient(160deg, #1f3042 0%, #172434 55%, #101924 100%);
+  background-size: auto, auto, calc(10 * var(--mm)) calc(10 * var(--mm)), 180px 180px, auto;
+  background-position: 0 0, 0 0, calc((100cqw - 176 * var(--mm)) / 2) calc((100cqh - 104 * var(--mm)) / 2), 0 0, 0 0;
+}
+.hb-bench-items,
+.hb-cable {
+  position: absolute;
+  left: calc(-40 * var(--mm));
+  top: calc(-40 * var(--mm));
+  width: calc(256 * var(--mm));
+  height: calc(184 * var(--mm));
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+/* The cable's image covers only its own box (board mm, per board). */
+.hb-cable {
+  --pdx: -1; /* the way the plug goes in */
+  --pdy: 0;
+  left: calc(var(--cxl) * var(--mm));
+  top: calc(var(--cyl) * var(--mm));
+  width: calc(var(--cwl) * var(--mm));
+  height: calc(var(--chl) * var(--mm));
+}
+
+/* The camera: the opening flies it in close on the chip, then pulls back
+   (intro.css). At rest it does nothing. */
+.hb-camera {
+  position: relative;
+  width: calc(176 * var(--mm));
+  height: calc(104 * var(--mm));
+}
+
+.hb-board {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(3 * var(--mm));
+  /* Raised on its standoffs: a tight contact shadow and a wide soft one cast
+     down-right onto the mat by the lamp. */
+  box-shadow:
+    calc(0.6 * var(--mm)) calc(1.6 * var(--mm)) calc(1.4 * var(--mm)) rgba(0, 0, 0, 0.7),
+    calc(2 * var(--mm)) calc(5 * var(--mm)) calc(9 * var(--mm)) rgba(0, 0, 0, 0.55),
+    calc(4 * var(--mm)) calc(9 * var(--mm)) calc(18 * var(--mm)) rgba(0, 0, 0, 0.45);
+  /* A product shot: the board rests tilted a few degrees away, and the pointer
+     turns it slightly. One flat plane — the parts' heights are told by
+     parallax and shadows, not by 3D, so nothing drifts off its pads. */
+  transform: perspective(2600px) rotateX(calc(3.5deg - var(--py, 0) * 1.4deg)) rotateY(calc(var(--px, 0) * 1.8deg));
+  transform-origin: 50% 55%;
+}
+
+.hb-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Every HTML part is placed in board millimetres. --hgt is its height above
+   the board (mm, exaggerated for legibility): taller parts shift further with
+   the pointer — parallax is what tells the eye they stand on the board. */
+.part {
+  /* Each part carries both boards' coordinates; this picks the landscape set
+     (the phone block at the end picks the portrait one). */
+  --x: var(--xl);
+  --y: var(--yl);
+  --w: var(--wl);
+  --h: var(--hl);
+  --hgt: 0;
+  position: absolute;
+  left: calc(var(--x) * var(--mm));
+  top: calc(var(--y) * var(--mm));
+  width: calc(var(--w) * var(--mm));
+  height: calc(var(--h) * var(--mm));
+  translate: calc(var(--px, 0) * var(--hgt) * 0.9px) calc(var(--py, 0) * var(--hgt) * 0.9px);
+}
+
+/* One lamp for everything: a hard side face (the part's thickness, seen
+   because the board tilts away), a tight contact shadow at its base, and a
+   wide soft one — all down-right, all scaled by height. Static. */
+.elev {
+  box-shadow:
+    0 calc(var(--hgt) * 0.09 * var(--mm)) 0 0 rgba(3, 10, 6, 0.95),
+    calc(var(--hgt) * 0.06 * var(--mm)) calc(var(--hgt) * 0.16 * var(--mm)) calc(var(--hgt) * 0.12 * var(--mm)) rgba(0, 10, 4, 0.6),
+    calc(var(--hgt) * 0.22 * var(--mm)) calc(var(--hgt) * 0.4 * var(--mm)) calc(var(--hgt) * 0.55 * var(--mm)) rgba(0, 10, 4, 0.38);
+}
+
+/* Silkscreen-style caption set in HTML (px minimum so it stays legible). */
+/* Readability first: every label reads at a glance — 13 px at least, full
+   contrast; the names of things in caps, what they are in plain text. */
+.hb-caption {
+  font-size: max(13px, calc(1.6 * var(--mm)));
+  line-height: 1.25;
+  color: #efede7;
+  white-space: nowrap;
+}
+.hb-caption b {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Lamp + sheen (the only light layer; slides with the pointer later) ── */
+
+.hb-lamp {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 60% at 30% 22%, rgba(255, 252, 240, 0.055), rgba(255, 252, 240, 0) 70%),
+    linear-gradient(118deg, rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(140deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.32) 100%);
+}
+
+/* The screens' light spilling onto the board around them. */
+.hb-spill {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(32% 40% at 25% 64%, rgba(95, 208, 192, 0.08), rgba(136, 145, 242, 0.05) 45%, rgba(0, 0, 0, 0) 75%),
+    radial-gradient(32% 40% at 75% 64%, rgba(76, 89, 230, 0.12), rgba(76, 89, 230, 0.04) 50%, rgba(0, 0, 0, 0) 78%),
+    radial-gradient(40% 10% at 30% 92%, rgba(255, 79, 0, 0.06), rgba(255, 79, 0, 0) 70%);
+}
+
+/* ════════════════════════════════════════════════════════════
+   U1 — the processor. Substrate, epoxy lid, laser marking.
+   ════════════════════════════════════════════════════════════ */
+
+.u1 {
+  border-radius: calc(0.5 * var(--mm));
+}
+.u1-lid {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  /* The name's cap line sits --name-top below the lid's top (spec NAME). */
+  padding: calc(var(--name-top) * var(--mm)) calc(3.2 * var(--mm)) 0;
+  border-radius: calc(0.5 * var(--mm));
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.045) 43%, rgba(255, 255, 255, 0) 57%),
+    linear-gradient(135deg, #1c1c1e 0%, #121213 38%, #0b0b0c 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.13),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.75);
+}
+.u1-pin1 {
+  position: absolute;
+  left: calc(1.4 * var(--mm));
+  top: calc(1.4 * var(--mm));
+  width: calc(1.1 * var(--mm));
+  height: calc(1.1 * var(--mm));
+  border-radius: 50%;
+  background: radial-gradient(circle at 62% 62%, #1b1b1c, #060606 70%);
+  box-shadow: inset calc(0.1 * var(--mm)) calc(0.1 * var(--mm)) calc(0.15 * var(--mm)) rgba(0, 0, 0, 0.9);
+}
+/* The engraved name (name/Engraving.tsx): grooves cut into the epoxy, sized
+   in cap heights (--name-h mm each). Its box carries room for the stroke, so
+   it's pulled back by that pad to keep the cap line and the left edge exact. */
+.u1-name {
+  margin: 0;
+  line-height: 0;
+}
+.eng-name {
+  position: relative;
+  display: block;
+  width: calc(var(--eng-w) * var(--name-h) * var(--mm));
+  height: calc(var(--eng-h) * var(--name-h) * var(--mm));
+  margin: calc(var(--eng-pad) * var(--name-h) * var(--mm) * -1) 0 0 calc(var(--eng-pad) * var(--name-h) * var(--mm) * -1);
+}
+.eng-name svg,
+.eng-mark svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* The cut's walls, lit from the upper left and from the upper right: the
+   pointer blends the two, so the light moves across the grooves (phones,
+   with no pointer, keep the lamp's side). On their own layers once the
+   opening is over, so moving the light never repaints the masks. */
+.eng-l {
+  opacity: calc(0.5 - var(--px, -0.6) * 0.5);
+}
+.eng-r {
+  opacity: calc(0.5 + var(--px, -0.6) * 0.5);
+}
+:root:not([data-intro~="play"]) .eng-light {
+  will-change: opacity;
+}
+/* The DM maker's mark, top-right of the lid. */
+.eng-mark {
+  position: absolute;
+  right: calc(1.6 * var(--mm));
+  top: calc(1.4 * var(--mm));
+  width: calc(4.6 * var(--mm));
+  height: calc(4.6 * var(--mm));
+}
+.u1-meta,
+.u1-line {
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.55);
+}
+.u1-meta {
+  margin-top: calc(1.3 * var(--mm));
+  font-size: max(13px, calc(1.55 * var(--mm)));
+  letter-spacing: 0.06em;
+  color: #c9c8c2;
+}
+.u1-line {
+  margin-top: calc(0.4 * var(--mm));
+  font-size: max(14px, calc(1.9 * var(--mm)));
+  color: #e2e0da;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Display modules (DS1, DS2): carrier, glass, live screen, FPC, ZIF
+   ════════════════════════════════════════════════════════════ */
+
+.ds {
+  --drv: var(--drv-l);
+  border-radius: calc(0.9 * var(--mm));
+}
+.ds-carrier {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(0.9 * var(--mm));
+  /* The module is a board of its own: black FR4, its edge catching the lamp. */
+  background: linear-gradient(135deg, #1d1d1e 0%, #131314 60%, #0e0e0f 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.09),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.7);
+}
+.ds-glass {
+  position: absolute;
+  inset: calc(2 * var(--mm)) calc(2 * var(--mm)) calc(3.2 * var(--mm));
+  border-radius: calc(0.4 * var(--mm));
+  background: #030303;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 0 0 calc(0.25 * var(--mm)) #050505;
+}
+/* Black-matrix border inside the glass, and the polariser's edge. */
+.ds-active {
+  position: absolute;
+  inset: calc(0.9 * var(--mm));
+  overflow: hidden;
+  border-radius: 2px;
+  outline: 1px solid rgba(255, 255, 255, 0.035);
+  outline-offset: calc(0.45 * var(--mm));
+}
+/* One 5% reflection across the glass. */
+.ds-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 34%, rgba(255, 255, 255, 0) 35%);
+}
+/* Chip-on-glass driver on the ledge where the FPC leaves the module. */
+.ds-driver {
+  position: absolute;
+  left: calc(var(--drv) * var(--mm));
+  top: calc(0.55 * var(--mm));
+  width: calc(7 * var(--mm));
+  height: calc(0.9 * var(--mm));
+  border-radius: 1px;
+  background: linear-gradient(180deg, #1d1d1f, #0b0b0c);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.08);
+}
+.ds-caption {
+  position: absolute;
+  left: calc(2.1 * var(--mm));
+  right: calc(2.1 * var(--mm));
+  bottom: calc(0.75 * var(--mm));
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+}
+.ds-screw {
+  position: absolute;
+  width: calc(1.3 * var(--mm));
+  height: calc(1.3 * var(--mm));
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d5dadf, #a9afb5 45%, #4e545a 100%);
+  box-shadow: calc(0.12 * var(--mm)) calc(0.15 * var(--mm)) calc(0.15 * var(--mm)) rgba(0, 0, 0, 0.7);
+}
+.ds-screw::after {
+  content: "";
+  position: absolute;
+  inset: 32%;
+  border-radius: 50%;
+  background: #202326;
+}
+
+/* Kapton FPC: translucent amber with its copper lines showing through. */
+.fpc {
+  background: linear-gradient(90deg, #87500f 0%, #c47e2c 16%, #e9a955 48%, #c47e2c 84%, #87500f 100%);
+  opacity: 0.92;
+}
+.fpc::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(0.9 * var(--mm));
+  background: repeating-linear-gradient(90deg, rgba(122, 58, 10, 0.6) 0 calc(0.16 * var(--mm)), rgba(0, 0, 0, 0) calc(0.16 * var(--mm)) calc(0.6 * var(--mm)));
+}
+.fpc::after {
+  /* Stiffener at the connector end. */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(1.6 * var(--mm));
+  background: linear-gradient(180deg, rgba(70, 34, 4, 0.7), rgba(70, 34, 4, 0.45));
+}
+
+/* ZIF connector: black body, latch bar closed over the cable, solder tabs. */
+.zif {
+  border-radius: calc(0.3 * var(--mm));
+  background: linear-gradient(180deg, #1e1e1f 0%, #101011 100%);
+}
+.zif .zif-latch {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.zif-latch {
+  position: absolute;
+  left: calc(0.8 * var(--mm));
+  right: calc(0.8 * var(--mm));
+  bottom: calc(0.25 * var(--mm));
+  height: calc(1.5 * var(--mm));
+  border-radius: calc(0.2 * var(--mm));
+  background: linear-gradient(180deg, #4a4239 0%, #2a2520 55%, #1a1714 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.zif-tab {
+  position: absolute;
+  top: calc(0.9 * var(--mm));
+  width: calc(0.8 * var(--mm));
+  height: calc(1.6 * var(--mm));
+  background: linear-gradient(135deg, #eceff1, #b9bec3 50%, #7b8187);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Display parts: 7- and 14-segment LED modules, OLED modules
+   ════════════════════════════════════════════════════════════ */
+
+.disp {
+  border-radius: calc(0.5 * var(--mm));
+  background: linear-gradient(135deg, #1c1c1d, #101011);
+}
+.disp-face {
+  position: absolute;
+  inset: calc(0.7 * var(--mm));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(0.8 * var(--mm));
+  border-radius: calc(0.25 * var(--mm));
+  overflow: hidden;
+}
+.disp-face.is-led {
+  --face-bg: radial-gradient(120% 140% at 30% 20%, #1c0b07, #130806 60%, #0d0504);
+  background: var(--face-bg);
+  box-shadow: inset 0 0 0 1px rgba(255, 120, 60, 0.06);
+}
+.disp-face.is-oled {
+  --face-bg: #040405;
+  background: var(--face-bg);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.disp-face svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.seg-on {
+  fill: url(#seg-lit);
+}
+.seg-halo {
+  fill: var(--lit);
+  stroke: var(--lit);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  opacity: 0.14;
+}
+.seg-off {
+  /* Unlit segments: barely there, so the lit number reads at a glance. */
+  fill: #200f0a;
+}
+.oled-px {
+  fill: #eaf2ff;
+}
+/* Plain-words label beside each display: what the number is. */
+.ach-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(0.35 * var(--mm));
+}
+.ach-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: max(14px, calc(1.85 * var(--mm)));
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f2f0ea;
+}
+.ach-note {
+  font-size: max(12px, calc(1.42 * var(--mm)));
+  line-height: 1.2;
+  color: #efede7;
+  opacity: 0.85;
+}
+/* LeetCode's own mark, in its own orange. */
+.ach-logo {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  fill: #ffa116;
+}
+/* The badge he holds: Knight (LeetCode, contest rating ≥ 1850) — a gold-rimmed
+   shield with the knight, the rank in gold beside it, a glint now and then. */
+.ach-badge {
+  display: flex;
+  align-items: center;
+  gap: calc(0.8 * var(--mm));
+  margin: calc(0.1 * var(--mm)) 0;
+}
+.ach-shield {
+  position: relative;
+  flex: none;
+  width: max(28px, calc(3.6 * var(--mm)));
+  aspect-ratio: 24 / 28;
+  filter: drop-shadow(0 0 calc(0.6 * var(--mm)) rgba(255, 190, 80, 0.45));
+  overflow: hidden;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28'><path d='M12 .3 23 4.4v8.8c0 7-4.6 12-11 14.6C5.6 25.2 1 20.2 1 13.2V4.4Z'/></svg>") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28'><path d='M12 .3 23 4.4v8.8c0 7-4.6 12-11 14.6C5.6 25.2 1 20.2 1 13.2V4.4Z'/></svg>") center / 100% 100% no-repeat;
+}
+.ach-shield svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ach-shine {
+  position: absolute;
+  inset: -20% auto -20% -60%;
+  width: 45%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 250, 230, 0.75), rgba(255, 255, 255, 0));
+  transform: skewX(-18deg);
+  animation: knight-shine 4.5s ease-in-out 2.5s infinite;
+}
+@keyframes knight-shine {
+  0%, 72% { translate: 0 0; }
+  100% { translate: 420% 0; }
+}
+.ach-rank {
+  font-size: max(18px, calc(2.35 * var(--mm)));
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #fff1c4, #f0c564 55%, #c48d34);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 calc(0.5 * var(--mm)) rgba(255, 190, 80, 0.35));
+}
+
+/* ════════════════════════════════════════════════════════════
+   Nav switches (6 mm tact) and the X-ray DIP switch
+   ════════════════════════════════════════════════════════════ */
+
+.sw {
+  display: block;
+  color: var(--silk);
+}
+.sw {
+  border-radius: calc(0.35 * var(--mm));
+}
+.sw-body {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(0.35 * var(--mm));
+  background: linear-gradient(135deg, #d5dadf 0%, #a9afb5 45%, #4e545a 100%);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.55);
+}
+.sw-body::before {
+  /* The stamped steel frame around the plunger. */
+  content: "";
+  position: absolute;
+  inset: calc(0.7 * var(--mm));
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #3a3d40, #1b1d1f 70%);
+}
+.sw-cap {
+  position: absolute;
+  inset: calc(1.25 * var(--mm));
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, #3b3b3d 0%, #18181a 45%, #070708 100%);
+  box-shadow:
+    inset calc(0.1 * var(--mm)) calc(0.1 * var(--mm)) 0 rgba(255, 255, 255, 0.12),
+    calc(0.15 * var(--mm)) calc(0.2 * var(--mm)) calc(0.25 * var(--mm)) rgba(0, 0, 0, 0.6);
+  transition: transform 90ms cubic-bezier(0.2, 0, 0, 1);
+}
+/* Everything you can press carries the signal orange, always: the switches
+   and the X-ray switch are illuminated (a lit ring round the plunger, full on
+   hover and focus), the project buttons are orange pills. As the opening
+   ends each is picked out in turn by a brighter ring that locks on
+   (.press-hint below; intro.css). */
+.sw-cap::after,
+.dip::after {
+  content: "";
+  position: absolute;
+  inset: calc(-0.45 * var(--mm));
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 calc(0.18 * var(--mm)) rgba(255, 79, 0, 0.9),
+    0 0 calc(1.4 * var(--mm)) rgba(255, 79, 0, 0.55);
+  opacity: 0.78;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.dip::after {
+  inset: calc(-0.4 * var(--mm));
+  border-radius: calc(0.55 * var(--mm));
+}
+.sw:hover .sw-cap::after,
+.sw:focus-visible .sw-cap::after,
+.dip:hover::after,
+.dip:focus-visible::after {
+  opacity: 1;
+}
+/* The lock-on ring: brighter, wider glow; only animates during the opening. */
+.sw-cap::before,
+.dip::before,
+.ds-act::before {
+  content: "";
+  position: absolute;
+  inset: calc(-0.45 * var(--mm));
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 calc(0.3 * var(--mm)) #ff6a1f,
+    0 0 calc(2.4 * var(--mm)) calc(0.5 * var(--mm)) rgba(255, 79, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+}
+.dip::before {
+  inset: calc(-0.4 * var(--mm));
+  border-radius: calc(0.55 * var(--mm));
+}
+.ds-act::before {
+  inset: -3px;
+  border-radius: 999px;
+}
+.sw:hover .sw-label,
+.sw:focus-visible .sw-label {
+  color: #fff;
+}
+.sw:hover .sw-cap {
+  box-shadow:
+    inset calc(0.1 * var(--mm)) calc(0.1 * var(--mm)) 0 rgba(255, 255, 255, 0.2),
+    0 0 0 calc(0.15 * var(--mm)) rgba(255, 79, 0, 0.5);
+}
+.sw:active .sw-cap {
+  transform: scale(0.93) translateY(calc(0.08 * var(--mm)));
+}
+.sw:focus-visible {
+  outline: 2px solid var(--lit);
+  outline-offset: 3px;
+}
+/* The switch's legend: its name in plain title case and a small drawn arrow
+   (down: a section of this page; up-right: opens the résumé). */
+.sw-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.9 * var(--mm));
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.sw-arrow {
+  width: 0.8em;
+  height: 0.8em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: #ff8a4c; /* orange: it goes somewhere (as on the project buttons) */
+}
+.sw:hover .sw-arrow,
+.sw:focus-visible .sw-arrow {
+  color: #fff;
+}
+
+.dip {
+  cursor: pointer;
+}
+.dip {
+  border-radius: calc(0.3 * var(--mm));
+}
+.dip-body {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(0.3 * var(--mm));
+  background: linear-gradient(135deg, #2a2a2c, #121213);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+}
+.dip-slot {
+  position: absolute;
+  inset: calc(1.2 * var(--mm)) calc(1.5 * var(--mm));
+  border-radius: calc(0.2 * var(--mm));
+  background: #050505;
+  box-shadow: inset calc(0.1 * var(--mm)) calc(0.15 * var(--mm)) calc(0.2 * var(--mm)) rgba(0, 0, 0, 0.9);
+}
+.dip-knob {
+  position: absolute;
+  top: calc(0.25 * var(--mm));
+  bottom: calc(0.25 * var(--mm));
+  left: calc(0.25 * var(--mm));
+  width: 44%;
+  border-radius: calc(0.15 * var(--mm));
+  background: linear-gradient(135deg, #f4f2ec, #c9c6bd);
+  box-shadow: calc(0.1 * var(--mm)) calc(0.1 * var(--mm)) calc(0.15 * var(--mm)) rgba(0, 0, 0, 0.6);
+  transition: left 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+.dip[aria-pressed="true"] .dip-knob {
+  left: calc(56% - 0.25 * var(--mm));
+}
+.dip:focus-visible {
+  outline: 2px solid var(--lit);
+  outline-offset: 3px;
+}
+.dip-label {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.9 * var(--mm));
+  text-align: right;
+}
+.hb-note {
+  white-space: normal;
+  opacity: 0.9;
+}
+.hb-menu b {
+  margin-right: 0.2em;
+}
+/* What you can do with each project: two buttons, plainly buttons. */
+.ds-actions {
+  display: flex;
+  flex: none;
+  gap: 0.4em;
+}
+.ds-caption > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The project captions carry two buttons in a fixed strip: one step smaller. */
+.ds-caption.hb-caption {
+  font-size: max(12px, calc(1.45 * var(--mm)));
+}
+.ds-act {
+  position: relative;
+  pointer-events: auto;
+  padding: 0.05em 0.7em;
+  border: 1px solid rgba(255, 79, 0, 0.85);
+  border-radius: 999px;
+  background: rgba(255, 79, 0, 0.12);
+  box-shadow: 0 0 calc(1 * var(--mm)) rgba(255, 79, 0, 0.25);
+  color: #fff;
+  font-weight: 600;
+  transition: background-color 0.15s;
+}
+.ds-arrow {
+  color: #ff8a4c;
+}
+.ds-act:hover,
+.ds-act:focus-visible {
+  background: rgba(255, 79, 0, 0.34);
+}
+.ds-act:hover .ds-arrow,
+.ds-act:focus-visible .ds-arrow {
+  color: #fff;
+}
+
+/* Lit 0603 LED: a lens plus a pre-made halo gradient (never a blur). */
+.led-glow {
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 196, 150, 0.95) 0%, rgba(255, 79, 0, 0.75) 14%, rgba(255, 79, 0, 0.18) 38%, rgba(255, 79, 0, 0) 70%);
+}
+
+/* Inside the board, the screens are displays, not websites: their sites'
+   own menu bars go; the wordmark and the content stay. */
+.hb .sw-bar {
+  background: transparent;
+  border-bottom: 0;
+}
+.hb .sw-bar span:not(.sw-logo) {
+  display: none;
+}
+.hb .ah-links {
+  display: none;
+}
+
+/* Opening start times that depend on the routing (when current arrives). */
+.led-glow,
+.disp-boot {
+  --at: var(--atl);
+}
+/* Layers drawn once per board: show the one for this screen. */
+.lay-p {
+  display: none !important;
+}
+.hb-camera {
+  --flood-at: 50% 17.3%; /* the mask floods out from the chip's centre… */
+  --flood-r: calc(128 * var(--mm)); /* …to the farthest corner */
+}
+
+/* ════════════════════════════════════════════════════════════
+   Phones: the portrait board (spec-phone.ts), 64 mm wide, as tall as it
+   needs to be and scrolled like the page. Same parts, restacked.
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 699px) {
+  .hb-view {
+    height: auto;
+    min-height: 0;
+  }
+  .hb-stage {
+    position: relative;
+    inset: auto;
+    container-type: inline-size;
+    padding: 12px 0;
+  }
+  .hb-camera,
+  .hb-bench {
+    --mm: calc((100cqw - 24px) / 64);
+  }
+  .hb-bench {
+    background-position: 0 0, 0 0, calc((100cqw - 64 * var(--mm)) / 2) 12px, 0 0, 0 0;
+  }
+  .hb-bench-items {
+    display: none; /* no room round the phone board */
+  }
+  .hb-cable {
+    --pdx: 0;
+    --pdy: -1;
+    left: calc(var(--cxp) * var(--mm));
+    top: calc(var(--cyp) * var(--mm));
+    width: calc(var(--cwp) * var(--mm));
+    height: calc(var(--chp) * var(--mm));
+  }
+
+
+  .hb-camera {
+    --flood-at: 50% 13.8%;
+    --flood-r: calc(204 * var(--mm));
+    width: calc(64 * var(--mm));
+    height: calc(232 * var(--mm));
+  }
+  .hb-board {
+    transform: none; /* no pointer to tilt it */
+  }
+  .part {
+    --x: var(--xp);
+    --y: var(--yp);
+    --w: var(--wp);
+    --h: var(--hp);
+  }
+  .ds {
+    --drv: var(--drv-p);
+  }
+  .led-glow,
+  .disp-boot {
+    --at: var(--atp);
+  }
+  .lay-p {
+    display: block !important;
+  }
+  .lay-l {
+    display: none !important;
+  }
+  /* X-ray switch: its label to its left (the chip sits below it). */
+  .dip-label {
+    right: calc(100% + 1.4 * var(--mm));
+    top: calc(0.3 * var(--mm));
+  }
+  .hb-cue {
+    display: none;
+  }
+  /* The screens are small here: keep what identifies each one. */
+  .ds-note,
+  .hb .sw-ticket,
+  .hb .ah-meta {
+    display: none;
+  }
+  /* On a phone, tapping the screen already goes to "How it works". */
+  .ds-act:first-child {
+    display: none;
+  }
+  /* The phone lid is narrower: the two lines under the name step down a size. */
+  .u1-meta {
+    font-size: 12px;
+  }
+  .u1-line {
+    font-size: 14px;
+  }
+  .hb .ah-credit {
+    top: 14px;
+    bottom: auto;
+  }
+}

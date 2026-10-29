@@ -1,0 +1,118 @@
+/* ─────────────────────────────────────────────────────────────
+   Teardowns. Each project is a case: the cover (the project's own
+   interface, in its own look) sits on top; scrolling lifts it off
+   and sets it down in the dock beside the title, revealing the
+   machine — the project's real algorithm, running.
+   ───────────────────────────────────────────────────────────── */
+
+.td-case {
+  position: relative;
+  perspective: 1800px;
+  perspective-origin: 70% 0%;
+}
+
+.td-machine {
+  position: relative;
+  background: var(--sheet);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 30px 60px -45px rgba(20, 20, 19, 0.4);
+}
+
+/* The cover. Its transform is written per frame by Teardown.tsx:
+   translate toward the dock + scale down to the dock's size, with a lift
+   (translateZ + a slight tilt) peaking halfway — lifted off, carried,
+   set down. transform-origin 0 0 so the maths is a plain rect-to-rect map. */
+.td-cover {
+  position: absolute;
+  inset: 0 0 auto 0;
+  aspect-ratio: 16 / 10;
+  z-index: 3;
+  transform-origin: 0 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #111;
+  box-shadow:
+    0 0 0 1px rgba(20, 20, 19, 0.9),
+    0 24px 50px -30px rgba(20, 20, 19, 0.6);
+  will-change: transform;
+}
+
+.td-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Docked, the cover is the thumbnail: its "lift me" label goes. */
+.td-cover-label {
+  transition: opacity 200ms linear;
+}
+.td-cover[data-docked="true"] .td-cover-label,
+.td-cover[data-docked="mid"] .td-cover-label {
+  opacity: 0;
+}
+
+/* The shadow the cover casts on the machine while it's in the air.
+   Static blur; only its opacity and position change. */
+.td-cover-shadow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  aspect-ratio: 16 / 10;
+  z-index: 2;
+  transform-origin: 0 0;
+  border-radius: 6px;
+  background: rgba(20, 20, 19, 0.55);
+  filter: blur(28px);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* The dock: a dashed drop zone beside the title, labelled, waiting for
+   the cover. Once the cover lands it IS the thumbnail. */
+.td-dock {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: 3px;
+}
+
+/* Hatch fills for the recommender's per-film parts — told apart by pattern,
+   not only colour, so they read for colour-blind visitors and in print. */
+.hatch-0 { background: var(--signal); }
+.hatch-1 {
+  background: repeating-linear-gradient(-45deg, var(--ink) 0 1.6px, transparent 1.6px 5px), rgba(20, 20, 19, 0.06);
+}
+.hatch-2 {
+  background:
+    radial-gradient(circle, var(--ink) 1.1px, transparent 1.4px) 0 0 / 5px 5px,
+    rgba(20, 20, 19, 0.06);
+}
+
+/* A part of a recommendation's bar: grows from its left edge, in order —
+   film one's votes, then two's, then three's. */
+.vote {
+  transform-origin: left center;
+  animation: vote-in 520ms var(--ease-land) backwards;
+}
+@keyframes vote-in {
+  from { transform: scaleX(0); }
+}
+
+.rise-in {
+  animation: rise-in 420ms var(--ease-land) backwards;
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vote,
+  .rise-in {
+    animation: none;
+  }
+}

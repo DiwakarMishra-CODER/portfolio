@@ -1,49 +1,44 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Hanken_Grotesk } from "next/font/google";
-import AmbientBackground from "@/components/AmbientBackground";
-import CursorFollow from "@/components/CursorFollow";
+import { Fraunces, IBM_Plex_Mono, Oswald, Permanent_Marker } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import { T } from "@/components/hero/timeline";
 
-// Display face: Bricolage Grotesque — used bold/heavy (weight 700-800) for
-// the "SOFTWARE ENGINEER" headline and the "DIWAKAR MISHRA" eyebrow.
-// Replaced Bebas Neue, which only shipped weight 400 and had to carry its
-// identity through size alone; Bricolage carries it through real weight.
-const displayFace = Bricolage_Grotesque({
-  variable: "--font-display-face",
-  subsets: ["latin"],
-  weight: ["700", "800"],
+// Host face: Mona Sans, one vendored static cut. (The name itself is no
+// font: it's engraved in a single-line hand drawn for it, hero/name/glyphs.ts.)
+const mona = localFont({
+  variable: "--font-mona",
+  src: [{ path: "../assets/fonts/MonaSans-Medium.woff2", weight: "500", style: "normal" }],
 });
 
-const hankenGrotesk = Hanken_Grotesk({
-  variable: "--font-hanken-grotesk",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+// Guest faces — each project keeps its own type inside its own panel. Not
+// preloaded: they never block the host's first paint.
+// Starweave (its app/layout.tsx): Fraunces, IBM Plex Mono, Permanent Marker.
+const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], weight: ["600"], style: ["normal", "italic"], preload: false });
+const plexMono = IBM_Plex_Mono({ variable: "--font-plex", subsets: ["latin"], weight: ["400", "500"], preload: false });
+const marker = Permanent_Marker({ variable: "--font-marker", subsets: ["latin"], weight: ["400"], preload: false });
+// Arthouse Atlas (its index.html): Newsreader + Oswald. Its credits are set
+// light at display sizes, where Newsreader's optical sizing picks the display
+// cut — so ship exactly those two static cuts (vendored, ~23 KB each) instead
+// of the whole variable font (~88 KB).
+const newsreader = localFont({
+  variable: "--font-newsreader",
+  preload: false,
+  src: [
+    { path: "../assets/fonts/Newsreader-Display-Light.woff2", weight: "300", style: "normal" },
+    { path: "../assets/fonts/Newsreader-Italic-Light.woff2", weight: "300", style: "italic" },
+  ],
 });
+const oswald = Oswald({ variable: "--font-oswald", subsets: ["latin"], weight: ["400"], preload: false });
 
-// SERP / social text only — never rendered on the page, so it deliberately
-// does NOT reuse the hero tagline (which it used to duplicate verbatim).
-// ~165 chars keeps it inside Google's truncation window.
+// SERP / social text only — never rendered on the page.
 const SITE_DESCRIPTION =
-  "Diwakar Mishra — software engineer, CSE-AI class of 2028. A citation-sourced influence map of 297 indie artists, a 497-film recommender, and a spoken mock-interview scorer.";
+  "Diwakar Mishra — software engineer, CSE-AI class of 2028. Two products taken apart: an influence map of 296 indie artists with every link sourced, and a 1,120-film recommender.";
 
-// Absolute base for the Open Graph image and the canonical URL. Without it,
-// Next resolves the card image against http://localhost:3000, so LinkedIn and
-// Twitter fetch a URL that doesn't exist publicly and the preview silently
-// degrades to a bare link.
-//
-// PREFER SETTING NEXT_PUBLIC_SITE_URL EXPLICITLY IN THE VERCEL PROJECT.
-// The VERCEL_PROJECT_PRODUCTION_URL fallback works, but it resolves to
-// whatever hostname Vercel auto-assigned that project — a name like
-// `portfolio-seven-eosin-31.vercel.app`, generated on name collision. If the
-// repo has ever been imported as more than one Vercel project, or a project
-// was renamed or recreated, that auto-name can point somewhere stale, and the
-// failure is silent and invisible on the page itself: the site loads fine
-// while every social preview fetches its card from a dead host.
-//
-// Setting NEXT_PUBLIC_SITE_URL to the canonical address (the custom domain,
-// or the intended *.vercel.app) removes the guesswork entirely. Verify after
-// deploy by checking that og:image and the canonical link both point at the
-// host you actually expect — see the metadata block below.
+// Absolute base for the Open Graph image and the canonical URL. PREFER SETTING
+// NEXT_PUBLIC_SITE_URL EXPLICITLY IN THE VERCEL PROJECT — the
+// VERCEL_PROJECT_PRODUCTION_URL fallback resolves to whatever hostname Vercel
+// auto-assigned, which can silently point at a stale host (see CLAUDE.md).
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
@@ -54,16 +49,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Diwakar Mishra — Software Engineer",
   description: SITE_DESCRIPTION,
-  // Open Graph / Twitter cards: this link gets shared on LinkedIn and in
-  // recruiter DMs, where a bare URL with no preview is a wasted first
-  // impression. The card image itself is generated at /opengraph-image.
-  // Declares the page's own canonical address, so a scraper that reaches the
-  // site via any other host (a preview deployment, an alias, a stale
-  // auto-generated URL) still attributes the preview and the search result to
-  // one address instead of treating each host as a separate page.
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Diwakar Mishra — Software Engineer",
     description: SITE_DESCRIPTION,
@@ -78,6 +64,22 @@ export const metadata: Metadata = {
   },
 };
 
+// Runs before first paint: picks what the hero's opening does (see
+// hero/clock.ts) — the full sequence; only the power-on if the page arrived
+// slowly; nothing under reduced motion — and makes any key, click, wheel,
+// touch or scroll skip to the finished board (landing on a #section scrolls,
+// so that skips it too).
+// `?t=<ms>` freezes the opening at that moment (for exact frames).
+const INTRO_SCRIPT = `(function(){var d=document.documentElement,q=new URLSearchParams(location.search),t=q.get("t");
+if(t!==null){window.__asmFreeze=+t||0;d.dataset.intro="play";d.dataset.freeze="";return}
+if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+var short=performance.now()>1500,t0=performance.now(),ev=["keydown","pointerdown","wheel","touchstart","scroll"];
+d.dataset.intro=short?"play short":"play";
+function off(){ev.forEach(function(e){removeEventListener(e,skip,true)})}
+function skip(e){if(e.type==="keydown"&&/^(Meta|Control|Alt|Shift)$/.test(e.key))return;
+d.dataset.intro=short||performance.now()-t0>${T.powerOn - 200}?"done quiet":"done";off()}
+ev.forEach(function(e){addEventListener(e,skip,{capture:true,passive:true})});setTimeout(off,${T.end + 800})})()`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -86,13 +88,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${displayFace.variable} ${hankenGrotesk.variable} h-full`}
+      className={[mona, fraunces, plexMono, marker, newsreader, oswald].map((f) => f.variable).join(" ")}
+      suppressHydrationWarning
     >
-      <body className="min-h-full bg-cream text-ink antialiased">
-        <AmbientBackground />
-        {children}
-        <CursorFollow />
-      </body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+      </head>
+      <body className="bg-film text-ink antialiased">{children}</body>
     </html>
   );
 }

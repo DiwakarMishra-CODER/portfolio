@@ -1,0 +1,585 @@
+/* ─────────────────────────────────────────────────────────────
+   The opening: the board built in front of you. Beat times are
+   custom properties from timeline.ts (--t-*, --d-*), per-part
+   start times are --at. Everything here applies only while
+   <html data-intro~="play">; without it (reduced motion, no JS,
+   skipped) the finished board shows. --shift moves every beat
+   earlier for a slow arrival, so only the power-on plays.
+   ───────────────────────────────────────────────────────────── */
+
+.hb {
+  --shift: 0ms;
+  --ease-glide: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-land: cubic-bezier(0.2, 0, 0, 1);
+}
+:root[data-intro~="short"] .hb {
+  --shift: var(--t-short); /* SHORT_SHIFT, timeline.ts */
+}
+
+/* Only-during-the-opening layers. */
+.hb-sentinel,
+.hb-fr4,
+.hb-fx-copper,
+.hb-fx-pulses,
+.u1-burn,
+.hb-dark,
+.hb-black,
+.hb-spark,
+.j1-flash,
+.u1-live,
+.hb-fx,
+.hb-dim,
+.disp-boot {
+  display: none;
+}
+.hb-fx-pulses {
+  z-index: 33;
+}
+.hb-sentinel {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* Bare laminate (woven glass under resin) and the copper growing on it. */
+.hb-fr4 {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(0deg, rgba(58, 48, 18, 0.11) 0 calc(0.25 * var(--mm)), rgba(0, 0, 0, 0) calc(0.25 * var(--mm)) calc(0.5 * var(--mm))),
+    repeating-linear-gradient(90deg, rgba(58, 48, 18, 0.08) 0 calc(0.25 * var(--mm)), rgba(0, 0, 0, 0) calc(0.25 * var(--mm)) calc(0.5 * var(--mm))),
+    linear-gradient(135deg, #847a53 0%, #716848 55%, #5f573b 100%);
+}
+
+/* The chip's two groups (Chip.tsx): the chip itself (below the darkness,
+   above the room's dim at power-on) and the burning copy (above the
+   darkness: hot metal gives its own light). */
+.u1-group,
+.u1-burn-group {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.u1-group {
+  z-index: 31;
+}
+.u1-group .u1 {
+  pointer-events: auto;
+}
+.u1-burn-group {
+  z-index: 62;
+}
+.u1-burn {
+  pointer-events: none;
+}
+.u1-lid.is-burn {
+  background: none;
+  box-shadow: none;
+}
+.is-burn .u1-meta,
+.is-burn .u1-line {
+  text-shadow: none;
+}
+.eng-space {
+  visibility: hidden;
+}
+.burn-ln {
+  position: relative;
+  color: transparent;
+  background-image: var(--heat);
+  background-size: var(--bw) 100%;
+  background-position: var(--bp1) 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+/* The laser writing the name (name/NameLaser.tsx), with room for sparks. */
+.name-laser {
+  position: absolute;
+  inset: calc(-12 * var(--mm));
+  width: calc(100% + 24 * var(--mm));
+  height: calc(100% + 24 * var(--mm));
+  pointer-events: none;
+}
+/* The red guide light (a fibre-laser marker's alignment preview): a fine red
+   frame around the name, flickering as the pointer traces it — pure CSS, so
+   the opening's first frames never wait for JavaScript. */
+.laser-guide {
+  position: absolute;
+  left: calc((3.2 - 1.2) * var(--mm));
+  top: calc((var(--name-top) - 1.2) * var(--mm));
+  width: calc(var(--eng-w) * var(--name-h) * var(--mm) + 2.4 * var(--mm) - 2 * var(--eng-pad) * var(--name-h) * var(--mm));
+  height: calc(var(--eng-h) * var(--name-h) * var(--mm) + 2.4 * var(--mm) - 2 * var(--eng-pad) * var(--name-h) * var(--mm));
+  border: 1px solid rgba(255, 52, 40, 0.85);
+  box-shadow: 0 0 calc(0.5 * var(--mm)) rgba(255, 40, 30, 0.55), inset 0 0 calc(0.5 * var(--mm)) rgba(255, 40, 30, 0.35);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The darkness: a soft window of laser light that follows the beam. */
+.hb-dark {
+  position: absolute;
+  z-index: 60;
+  left: calc(-300 * var(--mm));
+  top: calc(-300 * var(--mm));
+  width: calc(600 * var(--mm));
+  height: calc(600 * var(--mm));
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(2, 2, 2, 0.08) 0, rgba(2, 2, 2, 0.35) calc(8 * var(--win-k) * var(--mm)), rgba(2, 2, 2, 0.8) calc(17 * var(--win-k) * var(--mm)), #020202 calc(28 * var(--win-k) * var(--mm)));
+}
+.hb-black {
+  position: absolute;
+  z-index: 61;
+  inset: calc(-300 * var(--mm));
+  background: #020202;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Powered-off screens: black glass until their boot beat. */
+.ds-off {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: none;
+  background: #030303;
+  pointer-events: none;
+}
+
+/* Power-on: current pulses, the spark at the port, the chip's edge, the
+   reflow glint, the room dimming while the screens come up. Light sources
+   sit above the dim (z 30): screens, displays, LEDs, pulses. */
+.hb-spark {
+  z-index: 34;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(closest-side, #fff 0, #fff1d0 16%, rgba(255, 150, 60, 0.7) 36%, rgba(255, 80, 10, 0.2) 62%, rgba(255, 80, 10, 0));
+}
+/* At the click, a flash of light sweeps across the port's steel. */
+.j1-flash {
+  z-index: 34;
+  overflow: hidden;
+  border-radius: calc(0.45 * var(--mm));
+  opacity: 0;
+}
+.j1-flash::after {
+  content: "";
+  position: absolute;
+  inset: 0 -100%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0.95) 49%, rgba(255, 238, 205, 0.7) 53%, rgba(255, 255, 255, 0) 64%);
+}
+.u1-live {
+  z-index: 33;
+  border-radius: calc(0.5 * var(--mm));
+  opacity: 0;
+  box-shadow:
+    0 0 0 calc(0.2 * var(--mm)) rgba(255, 170, 96, 0.85),
+    0 0 calc(2.4 * var(--mm)) calc(0.6 * var(--mm)) rgba(255, 92, 20, 0.45);
+}
+.hb-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.hb-reflow {
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: calc(56 * var(--mm));
+  background: linear-gradient(100deg, rgba(255, 214, 160, 0) 15%, rgba(255, 220, 170, 0.34) 50%, rgba(255, 214, 160, 0) 85%);
+  translate: calc(-60 * var(--mm)) 0;
+}
+.hb-dim {
+  position: absolute;
+  z-index: 30;
+  inset: calc(-300 * var(--mm));
+  background: #020202;
+  opacity: 0;
+  pointer-events: none;
+}
+/* The chip stays lit while the room dims: it's what powers everything. */
+.hb .u1,
+.hb .ds,
+.hb .disp {
+  z-index: 31;
+}
+.hb-spill {
+  z-index: 32;
+}
+.led-glow {
+  z-index: 33;
+}
+.disp-boot,
+.disp-boot > span {
+  position: absolute;
+  inset: 0;
+}
+.disp-boot > span {
+  background: var(--face-bg);
+}
+.disp-boot > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.boot-test {
+  opacity: 0.01;
+}
+
+/* The way on: always there, quiet; the opening brings it in last. */
+.hb-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  z-index: 2;
+  translate: -50% 0;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ?t= freeze: nothing advances until the controller pins every animation. */
+:root[data-freeze] *,
+:root[data-freeze] *::before,
+:root[data-freeze] *::after {
+  animation-play-state: paused !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   The sequence
+   ═══════════════════════════════════════════════════════════ */
+
+:root[data-intro~="play"] {
+  .hb-sentinel {
+    display: block;
+    animation: hb-sentinel 10s linear calc(0ms - var(--shift)) both;
+  }
+  .hb-fr4,
+  .hb-fx-copper,
+  .hb-fx-pulses,
+  .u1-burn,
+  .hb-dark,
+  .hb-black,
+  .ds-off {
+    display: block;
+  }
+  /* The repainting layers get their own surface, so animating one never
+     re-paints the mask image (which carries a noise filter). `opacity`, not
+     `transform`: a will-change:transform layer keeps the resolution it was
+     first drawn at — here, the camera's close-up × the screen's pixel
+     density — and on a Retina screen that ran the GPU out of memory. */
+  .hb-mask,
+  .hb-silk {
+    will-change: opacity;
+  }
+  /* Parts waiting for their moment sit at 1% (invisible on the dark board),
+     not 0%, on their own layer: Chrome doesn't draw a fully transparent
+     layer until it appears, so it would be drawn mid-animation and show
+     with pieces missing for a frame or two. */
+  .drop,
+  .fpc,
+  .led-glow,
+  .hb-spark,
+  .j1-flash,
+  .u1-live,
+  .boot-test,
+  .hb-spill {
+    will-change: opacity;
+  }
+
+  /* ── The close-up: the chip held up to the camera (a slow push), then set
+     down onto its footprint while the board settles back a touch. ── */
+  .hb-camera {
+    transform-origin: var(--cam-ox) var(--cam-oy);
+    animation: cam-settle var(--d-camera) cubic-bezier(0.4, 0, 0.15, 1) calc(var(--t-camera) - var(--shift)) both;
+  }
+  .u1-group,
+  .u1-burn-group {
+    transform-origin: var(--cam-ox) var(--cam-oy);
+    animation:
+      chip-land var(--d-land) cubic-bezier(0.5, 0, 0.12, 1) calc(var(--t-land) - var(--shift)) both,
+      chip-hold var(--t-land) cubic-bezier(0.2, 0.6, 0.3, 1) calc(0ms - var(--shift)) none;
+  }
+
+  /* ── Darkness: the curtain lifts as the laser lights up; its window follows
+     the beam; the studio lamp comes up as the camera pulls back. ── */
+  .hb-black {
+    animation: fade-out var(--d-curtain) cubic-bezier(0.4, 0, 0.6, 1) calc(var(--t-curtain) - var(--shift)) both;
+  }
+  .hb-dark {
+    animation:
+      hb-window var(--d-window) linear calc(0ms - var(--shift)) both,
+      fade-out var(--d-dark) cubic-bezier(0.5, 0, 0.45, 1) calc(var(--t-dark) - var(--shift)) both;
+  }
+
+  /* ── The name: written by the laser (canvas), the small lines etched by a
+     finer pass; the laser's light fades as the chip seats, and the engraving
+     shows through. ── */
+  .burn-ln {
+    animation: burn-heat var(--bd) linear calc(var(--ba) - var(--shift)) both;
+  }
+  .laser-guide {
+    animation: guide var(--d-guide) steps(1, end) calc(var(--t-guide) - var(--shift)) both;
+  }
+  .u1-burn {
+    animation: gone var(--d-emberOut) cubic-bezier(0.45, 0, 0.55, 1) calc(var(--t-emberOut) - var(--shift)) forwards;
+  }
+  .u1-lid:not(.is-burn) :is(.u1-name, .u1-meta, .u1-line, .eng-mark) {
+    animation: fade-in var(--d-nameIn) linear calc(var(--t-nameIn) - var(--shift)) both;
+  }
+
+  /* ── Copper grows out of the chip; the mask floods over it; labels print. ── */
+  .hb-mask {
+    animation: mask-flood var(--d-flood) cubic-bezier(0.3, 0.1, 0.4, 1) calc(var(--t-flood) - var(--shift)) both;
+  }
+  .hb-silk {
+    animation: silk-print var(--d-silk) linear calc(var(--t-silk) - var(--shift)) both;
+  }
+  .silkprint {
+    animation: fade-in 140ms linear calc(var(--t-silk) + var(--x) * 1.7ms - var(--shift)) both;
+  }
+
+  /* ── Pick-and-place: each part comes down (bigger = nearer the camera)
+     and seats with a hard stop. ── */
+  .drop {
+    animation: part-drop var(--t-drop) var(--ease-land) calc(var(--at) - var(--shift)) both;
+  }
+  .fpc {
+    animation: fpc-in 240ms var(--ease-land) calc(var(--at) - var(--shift)) both;
+  }
+  .zif .zif-latch {
+    animation: latch-close 130ms cubic-bezier(0.5, 0, 0.9, 0.4) calc(var(--at) - var(--shift)) both;
+  }
+
+  /* ── The USB cable slides into its port and seats, just before power. ── */
+  .hb-cable {
+    will-change: opacity;
+    animation: plug-in var(--d-plug) linear calc(var(--t-plug) - var(--shift)) both; /* eased per stage */
+  }
+
+  /* ── Power-on: screens boot, LEDs light, the room dims a breath. ── */
+  .ds-off {
+    animation: backlight 420ms steps(4, end) calc(var(--at) - var(--shift)) both;
+  }
+  .hb-spark,
+  .u1-live,
+  .hb-fx,
+  .hb-dim,
+  .disp-boot {
+    display: block;
+  }
+  .hb-spark {
+    animation: spark-pop 420ms ease-out calc(var(--t-powerOn) - var(--shift)) both;
+  }
+  .j1-flash {
+    display: block;
+    animation: flash 320ms linear calc(var(--t-powerOn) - var(--shift)) both;
+  }
+  .j1-flash::after {
+    animation: sheen 320ms cubic-bezier(0.2, 0, 0.2, 1) calc(var(--t-powerOn) - var(--shift)) both;
+  }
+  .u1-live {
+    animation: chip-live 900ms ease-out calc(var(--t-fanOut) - var(--shift)) both;
+  }
+  .hb-reflow {
+    animation: reflow-sweep var(--d-reflow) var(--ease-glide) calc(var(--t-reflow) - var(--shift)) both;
+  }
+  .hb-dim {
+    animation: room-dim var(--d-lampDim) ease-in-out calc(var(--t-lampDim) - var(--shift)) both;
+  }
+  .led-glow {
+    animation: led-on 160ms steps(2, end) calc(var(--at) - var(--shift)) both;
+  }
+  .led-glow.led-snap {
+    animation: led-on 20ms steps(1, start) calc(var(--at) - var(--shift)) both;
+  }
+  .hb-spill {
+    animation: fade-in 700ms ease-out calc(var(--t-boot1) - var(--shift)) both;
+  }
+  .boot-off {
+    animation: boot-off 1ms steps(1, end) calc(var(--at) - var(--shift)) both;
+  }
+  .boot-test {
+    animation: boot-test 380ms steps(1, end) calc(var(--at) - var(--shift)) none;
+  }
+  .boot-test.is-noise {
+    animation-duration: 110ms;
+  }
+  .hb-cue {
+    animation: fade-in 600ms ease-out calc(var(--t-cue) - var(--shift)) both;
+  }
+  /* As the opening ends, every button you can press is picked out in turn,
+     in reading order: a bright ring closes in, locks on with a hard stop,
+     holds, and lets go — leaving the button's own resting glow. */
+  .sw-cap::before,
+  .dip::before,
+  .ds-act::before {
+    will-change: opacity;
+    animation: hint-lock 1000ms linear calc(var(--t-hint) + var(--hint-i) * var(--t-hintStep) - var(--shift)) both;
+  }
+}
+
+/* A skip before power-on cuts to black and fades up on the finished board. */
+:root[data-intro="done"] .hb-black {
+  display: block;
+  animation: fade-out 420ms cubic-bezier(0.2, 0.6, 0.3, 1) both;
+}
+
+@keyframes hb-sentinel {
+  from, to { opacity: 0; }
+}
+/* Fade away and stop being drawn at all (nothing left to repaint). */
+/* A real connector: it glides in, meets the contacts' resistance for the
+   last millimetre, then snaps home with a hard stop — the click. */
+@keyframes plug-in {
+  0% {
+    transform: translate(calc(var(--pdx) * 6.5 * var(--mm)), calc(var(--pdy) * 6.5 * var(--mm)));
+    animation-timing-function: cubic-bezier(0.25, 0.6, 0.35, 1);
+  }
+  55% {
+    transform: translate(calc(var(--pdx) * 1.1 * var(--mm)), calc(var(--pdy) * 1.1 * var(--mm)));
+    animation-timing-function: linear;
+  }
+  85% {
+    transform: translate(calc(var(--pdx) * 0.75 * var(--mm)), calc(var(--pdy) * 0.75 * var(--mm)));
+    animation-timing-function: cubic-bezier(0.7, 0, 1, 1);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes flash {
+  0% { opacity: 0.01; }
+  10% { opacity: 1; }
+  100% { opacity: 0.01; }
+}
+@keyframes sheen {
+  from { translate: -42% 0; }
+  to { translate: 42% 0; }
+}
+@keyframes gone {
+  from { opacity: 1; }
+  to { opacity: 0; visibility: hidden; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes fade-in {
+  from { opacity: 0.01; }
+  to { opacity: 1; }
+}
+@keyframes cam-settle {
+  from { transform: scale(var(--cam)); }
+  to { transform: none; }
+}
+@keyframes chip-land {
+  from { transform: translate(var(--mac-tx), var(--mac-ty)) scale(var(--mac-s)) rotate(-1.2deg); }
+  to { transform: none; }
+}
+@keyframes chip-hold {
+  from { transform: translate(var(--mac-tx), var(--mac-ty)) scale(calc(var(--mac-s) * 0.94)) rotate(-1.7deg); }
+  to { transform: translate(var(--mac-tx), var(--mac-ty)) scale(var(--mac-s)) rotate(-1.2deg); }
+}
+@keyframes guide {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  30% { opacity: 0.55; }
+  38% { opacity: 1; }
+  62% { opacity: 0.6; }
+  70% { opacity: 1; }
+  92% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+@keyframes burn-heat {
+  from { background-position: var(--bp0) 0; }
+  to { background-position: var(--bp1) 0; }
+}
+@keyframes mask-flood {
+  from { clip-path: circle(0px at var(--flood-at)); }
+  to { clip-path: circle(var(--flood-r) at var(--flood-at)); }
+}
+@keyframes silk-print {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes part-drop {
+  0% { opacity: 0.01; scale: 1.14; }
+  35% { opacity: 1; }
+  100% { opacity: 1; scale: 1; }
+}
+@keyframes fpc-in {
+  from { opacity: 0.01; translate: 0 calc(1.4 * var(--mm)); }
+  to { opacity: 1; translate: 0 0; }
+}
+@keyframes latch-close {
+  from { scale: 1 0.35; translate: 0 calc(-0.9 * var(--mm)); filter: brightness(1.8); }
+  to { scale: 1 1; translate: 0 0; }
+}
+@keyframes spark-pop {
+  0% { opacity: 0.01; scale: 0.2; }
+  14% { opacity: 1; scale: 1.25; }
+  100% { opacity: 0.01; scale: 1.7; }
+}
+@keyframes chip-live {
+  0% { opacity: 0.01; }
+  18% { opacity: 1; }
+  100% { opacity: 0.01; }
+}
+@keyframes reflow-sweep {
+  from { translate: calc(-60 * var(--mm)) 0; }
+  to { translate: calc(182 * var(--mm)) 0; }
+}
+@keyframes room-dim {
+  0% { opacity: 0; }
+  22% { opacity: 0.45; }
+  55% { opacity: 0.45; }
+  100% { opacity: 0; }
+}
+@keyframes led-on {
+  from { opacity: 0.01; }
+  to { opacity: 1; }
+}
+@keyframes hint-lock {
+  0% {
+    opacity: 0.01;
+    scale: 1.8;
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+  28% {
+    opacity: 1;
+    scale: 1;
+  }
+  72% {
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  100% {
+    opacity: 0.01;
+    scale: 1;
+  }
+}
+@keyframes boot-off {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes boot-test {
+  from, to { opacity: 1; }
+}
+@keyframes backlight {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Reduced motion: no animation anywhere in the hero (the opening never
+   starts — see layout.tsx — and the screens' idle loops stop too). */
+@media (prefers-reduced-motion: reduce) {
+  .hb *,
+  .hb *::before,
+  .hb *::after {
+    animation: none !important;
+  }
+}

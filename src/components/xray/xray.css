@@ -1,0 +1,47 @@
+/* X-ray: every named part outlined in signal orange and labelled with its
+   name. Pure CSS off one attribute on <html>, so it costs nothing when off. */
+html[data-xray="on"] [data-part] {
+  outline: 1px dashed rgba(255, 79, 0, 0.85);
+  outline-offset: -1px;
+}
+
+html[data-xray="on"] [data-part]::after {
+  content: attr(data-part);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  padding: 3px 6px;
+  background: var(--signal);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Every [data-part] host is positioned in its own component (the label is
+   absolutely placed inside it). Never force position here — the hero's
+   layers are absolute and must stay so. */
+
+/* Images and canvases get a faint fill, so their boxes read as boxes. */
+html[data-xray="on"] img,
+html[data-xray="on"] canvas {
+  outline: 1px solid rgba(255, 79, 0, 0.35);
+}
+
+.xray-hud {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  width: min(300px, calc(100vw - 32px));
+  padding: 14px 16px;
+  background: rgba(20, 20, 19, 0.94);
+  color: var(--film);
+  border-radius: 4px;
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
