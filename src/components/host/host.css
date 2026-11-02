@@ -1,0 +1,242 @@
+/* The host on the page. Each spot (data-host-spot) carries a still poster;
+   once the engine draws its first frame the canvas takes over. */
+.pg-spot {
+  position: relative;
+}
+.host-poster,
+.host-canvas {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  translate: -50% 0;
+  pointer-events: none;
+  user-select: none;
+}
+.host-poster {
+  height: 100%;
+  width: auto;
+  transition: opacity 0.2s linear;
+}
+.host-canvas {
+  opacity: 0;
+  transition: opacity 0.2s linear;
+}
+.pg-spot.is-live .host-canvas {
+  opacity: 1;
+}
+.pg-spot.is-live .host-poster,
+.pg-spot.is-empty .host-poster {
+  opacity: 0;
+}
+
+/* What you poke: an invisible button over his body. The only place on the
+   page where touch doesn't scroll (so you can pick him up). */
+.host-hit {
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  top: 14%;
+  bottom: 0;
+  border-radius: 40% 40% 14% 14%;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+.host-hit.is-grab {
+  cursor: grab;
+}
+.host-hit.is-held,
+.is-holding-host,
+.is-holding-host * {
+  cursor: grabbing !important;
+}
+.host-hit:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+/* A quick reaction, shown over his story line in his own bubble. */
+.host-quip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: inherit;
+  background: #fff;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+}
+.is-quipping .host-quip {
+  opacity: 1;
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+.is-quipping blockquote {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .is-quipping .host-quip {
+    animation: quip-in 220ms var(--ease-land);
+  }
+}
+@keyframes quip-in {
+  from {
+    transform: translateY(4px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+/* The sound switch: off until the visitor wants it. */
+.host-sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px 0 12px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 1.5px var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.host-sound:hover {
+  box-shadow: 0 0 0 1.5px var(--signal);
+  color: var(--signal-ink);
+}
+.host-sound span {
+  width: 14px;
+  height: 12px;
+  background: currentColor;
+  /* A speaker, with waves when on. */
+  clip-path: polygon(0 30%, 30% 30%, 62% 0, 62% 100%, 30% 70%, 0 70%);
+}
+.host-sound[aria-pressed="true"] span {
+  width: 18px;
+  clip-path: polygon(0 30%, 23% 30%, 48% 0, 48% 100%, 23% 70%, 0 70%, 0 30%, 60% 35%, 68% 35%, 68% 65%, 60% 65%, 60% 35%, 80% 15%, 88% 15%, 88% 85%, 80% 85%, 80% 15%);
+}
+
+/* Asleep: three z's drift up from his head, one after another. */
+.host-zzz {
+  position: absolute;
+  left: 56%;
+  top: 6%;
+  display: none;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+  pointer-events: none;
+}
+.is-asleep .host-zzz {
+  display: block;
+}
+.host-zzz i {
+  position: absolute;
+  font-style: normal;
+  opacity: 0;
+  animation: zzz 2.4s linear infinite;
+}
+.host-zzz i:nth-child(2) {
+  animation-delay: 0.8s;
+  font-size: 0.8em;
+}
+.host-zzz i:nth-child(3) {
+  animation-delay: 1.6s;
+  font-size: 0.65em;
+}
+@keyframes zzz {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(26px, -48px);
+    opacity: 0;
+  }
+}
+
+/* A lane's own bubble: his lines while you read that room. Empty and
+   hidden until he says something; its tail points down at him. */
+.host-bubble {
+  position: relative;
+  min-height: 0;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 0 0 1.5px var(--ink), 0 6px 0 -1px rgba(20, 20, 19, 0.12);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s linear, visibility 0s linear 0.2s;
+}
+.host-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  background: #fff;
+  box-shadow: 1.5px 1.5px 0 0 var(--ink);
+  transform: rotate(45deg);
+}
+.host-bubble.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s linear;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .host-bubble.is-on {
+    animation: quip-in 220ms var(--ease-land);
+  }
+}
+
+/* Nightfall: he flies between the hero and the Starweave room in a fixed box
+   of his own (HostLayer moves it along the arc; feet at its bottom centre). */
+.host-flight {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 45; /* over the page, under the nav (50) */
+  pointer-events: none;
+  transform-origin: 50% 100%;
+}
+.host-flight .host-canvas {
+  opacity: 1;
+}
+/* The star dust he leaves behind in flight. */
+.host-dust {
+  position: fixed;
+  z-index: 44;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--c) 70%, transparent);
+  pointer-events: none;
+}
+/* The follow-spot that tracks him down the dark aisle into the cinema. */
+.host-followspot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 43;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 244, 214, 0.22), rgba(255, 244, 214, 0.08) 60%, transparent);
+  pointer-events: none;
+}

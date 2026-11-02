@@ -25,13 +25,13 @@ export function XRaySwitch() {
 }
 
 /**
- * The same menu the hero's interface layer carries, pinned once the hero has
- * scrolled away (the hero's own copy rides with its layer while it's on screen).
+ * The hero's own top line, pinned once the hero has scrolled away (while it's
+ * on screen, the hero carries the menu itself).
  */
 export default function SiteNav() {
   const [shown, setShown] = useState(false);
   useEffect(() => {
-    const hero = document.querySelector("[data-hero-track]");
+    const hero = document.querySelector("[data-hero]");
     const check = () => {
       const end = hero ? hero.getBoundingClientRect().bottom : 0;
       setShown(end <= 80);
@@ -53,7 +53,7 @@ export default function SiteNav() {
     >
       <nav className="mx-auto flex max-w-[calc(1312px+2*var(--gutter))] items-center justify-between px-[var(--gutter)] py-3.5" aria-label="Main">
         <a href="#top" className="type-label text-ink">
-          <span className="text-signal-ink">DM</span>&nbsp; Diwakar Mishra
+          Diwakar Mishra
         </a>
         <ul className="type-label flex items-center gap-5 text-ink min-[900px]:gap-8">
           {NAV_LINKS.map((l) => (

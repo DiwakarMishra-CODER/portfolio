@@ -1,0 +1,556 @@
+/* ─────────────────────────────────────────────────────────────
+   Arthouse Atlas's room, in the site's own language: projected black, a
+   warm projector white, the one gold (acclaim, and what you press).
+   Newsreader for titles and reading, Oswald for labels and numbers.
+   ───────────────────────────────────────────────────────────── */
+.ah-room {
+  --black: #050505;
+  --white: #f1ece2;
+  --white-2: rgba(241, 236, 226, 0.72);
+  --line: rgba(241, 236, 226, 0.16);
+  --gold: #d9ad62;
+  --gold-l: #f0cf8e;
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip; /* his light and column reach past the edge; never a sideways scroll */
+  padding: clamp(72px, 8vw, 112px) 0 clamp(80px, 9vw, 120px);
+  background: var(--black);
+  color: var(--white);
+}
+/* Out of the dark, back to the sand. */
+.ah-room::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -72px;
+  height: 72px;
+  background: linear-gradient(var(--black), transparent);
+  pointer-events: none;
+}
+.ah-kicker {
+  font-family: var(--font-ah-label);
+  font-size: 14px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.ah-room h2 {
+  margin-top: 10px;
+  font-family: var(--font-ah-serif);
+  font-size: clamp(44px, 5.4vw, 84px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+}
+.ah-line {
+  margin-top: 16px;
+  max-width: 34ch;
+  font-size: clamp(20px, 1.8vw, 25px);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.ah-proof {
+  margin-top: 22px;
+  max-width: 40ch;
+  font-family: var(--font-ah-serif);
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.25;
+}
+.ah-proof b {
+  font-family: var(--font-ah-label);
+  font-weight: 500;
+  color: var(--gold-l);
+}
+.ah-proof span {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--font-body, inherit);
+  font-size: 15px;
+  color: var(--white-2);
+}
+.ah-said {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+.ah-room .pg-said {
+  color: var(--ink);
+}
+.ah-spot-inline {
+  flex: none;
+  width: 120px;
+  aspect-ratio: 340 / 420;
+}
+@media (min-width: 1280px) {
+  .ah-spot-inline {
+    display: none;
+  }
+  .host-live .ah-said {
+    display: none;
+  }
+}
+@media (max-width: 1279px) {
+  .ah-room .pg-said[data-tail="right"]::after {
+    display: block;
+  }
+}
+/* A projector's pool of light where he stands. */
+.ah-room .pg-spot::before {
+  content: "";
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  top: 0;
+  bottom: -8%;
+  background:
+    radial-gradient(46% 8% at 50% 94%, rgba(241, 236, 226, 0.4), transparent 72%),
+    radial-gradient(48% 46% at 50% 50%, rgba(241, 236, 226, 0.2), transparent 70%);
+  pointer-events: none;
+}
+
+/* ── The strip of films ──────────────────────────────────── */
+.ah-bill {
+  margin-top: clamp(36px, 4vw, 52px);
+}
+.ah-coach {
+  font-size: 19px;
+  font-weight: 600;
+}
+.ah-coach span {
+  color: var(--white-2);
+  font-weight: 500;
+}
+@media (min-width: 1280px) {
+  .host-live .ah-bill[data-guide="tap"] .ah-coach {
+    visibility: hidden;
+  }
+}
+/* Frames of film, sprocket holes above and below each. */
+.ah-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-top: 16px;
+  background: #1d1b18;
+}
+.ah-strip li {
+  position: relative;
+  padding: 16px 4px;
+}
+.ah-strip li::before,
+.ah-strip li::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(90deg, transparent 4px, var(--black) 4px 11px, transparent 11px) 0 0 / 15px 8px repeat-x;
+}
+.ah-strip li::before {
+  top: 4px;
+}
+.ah-strip li::after {
+  bottom: 4px;
+}
+.ah-strip button {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  color: var(--white);
+}
+.ah-strip img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #1a1816;
+  filter: saturate(0.85);
+  transition: filter 0.2s, outline-color 0.2s;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.ah-strip button:hover img {
+  filter: saturate(1.1) brightness(1.08);
+  outline-color: var(--gold);
+}
+.ah-strip li[data-on] img {
+  outline-color: var(--gold);
+  filter: none;
+}
+.ah-strip button span {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-ah-label);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+.ah-strip small {
+  color: var(--white-2);
+  letter-spacing: 0.04em;
+}
+/* The film to tap: an orange ring (orange is what you press), a ripple, the hand. */
+.ah-strip li[data-coach] img {
+  outline: 3px solid var(--signal);
+  outline-offset: 3px;
+}
+.ah-strip li[data-coach] button::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 0 0 3px var(--signal);
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ah-strip li[data-coach] button::before {
+    animation: ah-ripple 1.6s var(--ease-land) 0.7s infinite;
+  }
+}
+@keyframes ah-ripple {
+  0% {
+    opacity: 0.9;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.18;
+  }
+}
+.ah-strip li[data-coach] .tap-hand {
+  right: 8%;
+  top: 34%;
+}
+@media (max-width: 899px) {
+  .ah-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ── The stage: marquee, screen, the audience ─────────────── */
+.ah-stage {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  margin-top: 40px;
+}
+.ah-marquee {
+  position: relative;
+  padding: 10px 26px 12px;
+  border-radius: 6px;
+  background: #140f08;
+  box-shadow: 0 0 0 2px var(--gold);
+  text-align: center;
+}
+/* Its bulbs: two dotted rings, lit in turn (opacity only). */
+.ah-marquee::before,
+.ah-marquee::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  padding: 7px;
+  border-radius: 12px;
+  background: radial-gradient(circle, #ffd88a 0 2.4px, transparent 3px) 0 0 / 14px 14px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.ah-marquee::after {
+  background-position: 7px 7px;
+  opacity: 0.25;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ah-marquee::before {
+    animation: ah-bulbs 0.9s steps(1) infinite;
+  }
+  .ah-marquee::after {
+    animation: ah-bulbs 0.9s steps(1) infinite reverse;
+  }
+}
+@keyframes ah-bulbs {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+.ah-marquee-k {
+  font-family: var(--font-ah-label);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.ah-marquee-v {
+  font-family: var(--font-ah-label);
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ah-screen {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+  width: min(720px, 100%);
+  aspect-ratio: 2.1 / 1;
+  padding: 6px;
+  background: #0d0c0b;
+  box-shadow: 0 0 0 1px var(--line), 0 30px 90px -30px rgba(241, 236, 226, 0.35);
+}
+.ah-reel {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+}
+.ah-reel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ah-reel figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px 12px 8px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  font-family: var(--font-ah-label);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ah-reel {
+    animation: ah-reel 600ms var(--ease-land) backwards;
+  }
+}
+@keyframes ah-reel {
+  from {
+    opacity: 0.01;
+  }
+}
+.ah-screen-wait {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-ah-serif);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--white-2);
+}
+.ah-seats {
+  width: min(700px, 100%);
+}
+.ah-seats rect {
+  fill: #23201b;
+  transition: fill 0.5s var(--ease-land);
+  transition-delay: var(--d);
+}
+.ah-seats[data-phase="1"] rect {
+  fill: var(--white);
+}
+.ah-seats[data-phase="2"] rect {
+  fill: #2a2620;
+}
+.ah-seats[data-phase="2"] rect.g {
+  fill: var(--gold);
+}
+.ah-caption {
+  max-width: 44ch;
+  text-align: center;
+  color: var(--white-2);
+  font-size: 15px;
+}
+.ah-caption-big {
+  margin-bottom: 6px;
+  font-family: var(--font-ah-serif);
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.2;
+  color: var(--white);
+}
+.ah-caption-big b {
+  font-family: var(--font-ah-label);
+  font-weight: 500;
+  color: var(--gold-l);
+}
+.ah-caption a {
+  color: var(--gold-l);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The ticket he holds up (in his column on wide screens). */
+.ah-ticket {
+  position: relative;
+  padding: 18px 26px 20px;
+  background: linear-gradient(#f6ecd7, #eadcbd);
+  color: #1b1408;
+  text-align: center;
+  rotate: -2deg;
+  box-shadow: 0 22px 40px -22px rgba(0, 0, 0, 0.8);
+  -webkit-mask: radial-gradient(circle 11px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 11px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+}
+.ah-stage .ah-ticket {
+  margin-top: 8px;
+}
+.ah-ticket-k {
+  font-family: var(--font-ah-label);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #8a6120;
+}
+.ah-ticket-v {
+  margin-top: 6px;
+  font-family: var(--font-ah-serif);
+  font-size: 24px;
+  line-height: 1.15;
+}
+.ah-ticket-v span {
+  color: #8a6120;
+}
+.ah-ticket-n {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(27, 20, 8, 0.35);
+  font-family: var(--font-ah-label);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ah-ticket {
+    animation: ah-ticket 420ms var(--ease-land);
+  }
+}
+@keyframes ah-ticket {
+  from {
+    opacity: 0.01;
+    translate: 0 16px;
+  }
+}
+
+/* ── End credits ─────────────────────────────────────────── */
+.ah-credits {
+  max-width: 600px;
+  margin: clamp(80px, 9vw, 120px) auto 0;
+  text-align: center;
+}
+.ah-credits-open {
+  font-family: var(--font-ah-label);
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.ah-credits-title {
+  margin-top: 10px;
+  font-family: var(--font-ah-serif);
+  font-size: clamp(30px, 3vw, 40px);
+  font-weight: 300;
+  font-style: italic;
+}
+.ah-roles {
+  display: grid;
+  gap: 22px;
+  margin-top: 40px;
+}
+.ah-roles dt {
+  font-family: var(--font-ah-label);
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--white-2);
+}
+.ah-roles dd {
+  margin-top: 4px;
+  font-family: var(--font-ah-serif);
+  font-size: clamp(18px, 1.6vw, 21px);
+  line-height: 1.35;
+}
+.ah-board {
+  margin-top: 48px;
+  padding: 26px 0 8px;
+  border-top: 1px solid rgba(217, 173, 98, 0.45);
+  border-bottom: 1px solid rgba(217, 173, 98, 0.45);
+}
+.ah-board-k {
+  font-family: var(--font-ah-label);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.ah-board-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 18px 0;
+  text-align: left;
+}
+.ah-board-row + .ah-board-row {
+  border-top: 1px solid var(--line);
+}
+.ah-board-big {
+  font-family: var(--font-ah-label);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--gold-l);
+  text-align: right;
+}
+.ah-board-big small {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--white-2);
+}
+.ah-board-what {
+  font-family: var(--font-ah-serif);
+  font-size: 19px;
+  line-height: 1.3;
+}
+.ah-board-what span {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-ah-label);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--white-2);
+}
+.ah-credits-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 28px;
+  margin-top: 40px;
+  font-size: 17px;
+  font-weight: 600;
+}
+.ah-credits-links a {
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+.ah-credits-links a:hover {
+  color: var(--gold-l);
+}
+@media (max-width: 640px) {
+  .ah-board-row {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+  .ah-board-big {
+    font-size: 30px;
+  }
+}

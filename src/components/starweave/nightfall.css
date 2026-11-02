@@ -1,0 +1,146 @@
+/* ─────────────────────────────────────────────────────────────
+   Nightfall: the band between the hero and the Starweave room. Its sky
+   runs from the hero's sand through dusk into the room's night, and the
+   stars come out as you scroll. The reveal is scroll-driven CSS (no JS
+   per frame); outside the gate below everything simply shows, lit.
+   ───────────────────────────────────────────────────────────── */
+.nf {
+  position: relative;
+  isolation: isolate;
+  height: max(80svh, 560px);
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    #e7d9c8 0%,
+    #efc9a6 16%,
+    #e0a08d 30%,
+    #a8698a 46%,
+    #5a3a72 62%,
+    #2b1f4c 78%,
+    #16112b 100%
+  );
+}
+.nf-sky {
+  position: absolute;
+  inset: 0;
+}
+/* A star and its glow in one painted gradient (a blurred box-shadow on 40
+   stars, re-rastered as they grew in, dropped most frames of the scroll). */
+.nf-star {
+  --g: calc(var(--s) * 4);
+  position: absolute;
+  width: var(--g);
+  height: var(--g);
+  margin: calc(var(--g) / -2) 0 0 calc(var(--g) / -2);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--c) 24%, color-mix(in srgb, var(--c) 45%, transparent) 34%, transparent 100%);
+}
+/* A star a stranger knows, named as it comes out. */
+.nf-star b {
+  position: absolute;
+  left: calc(50% + var(--s) / 2 + 12px);
+  top: 50%;
+  translate: 0 -50%;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 700;
+  color: #f3efff;
+  text-shadow: 0 1px 8px rgba(10, 6, 30, 0.9);
+}
+.nf-star.is-left b {
+  left: auto;
+  right: calc(50% + var(--s) / 2 + 12px);
+}
+/* The named ones get a fine ring round the star itself. */
+.nf-star.is-named::before {
+  content: "";
+  position: absolute;
+  inset: calc(50% - var(--s) / 2 - 6px);
+  border: 1.5px solid rgba(243, 239, 255, 0.55);
+  border-radius: 50%;
+}
+/* The weave: who influenced whom, drawn star to star. */
+.nf-weave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* (The stroke stays 1.2 screen pixels whatever the band's shape; drawn in by
+   growing one dash, in screen pixels too, since pathLength doesn't hold
+   under a non-scaling stroke.) */
+.nf-weave line {
+  stroke: rgba(240, 201, 122, 0.6);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The hero's sunset shares the hero's own timeline (scoped to the body so
+   this band can tint its top in step with it). */
+body {
+  timeline-scope: --hero;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .nf {
+      view-timeline: --nf block;
+    }
+    .nf-star {
+      will-change: opacity;
+      animation-name: nf-star;
+      animation-duration: 1ms; /* scroll-driven: the range sets the pace */
+      animation-timing-function: var(--ease-land);
+      animation-fill-mode: both;
+      animation-timeline: --nf;
+      animation-range-start: cover var(--a);
+      animation-range-end: cover calc(var(--a) + 5%);
+    }
+    .nf-weave line {
+      animation-name: nf-draw;
+      animation-duration: 1ms;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --nf;
+      animation-range-start: cover var(--a);
+      animation-range-end: cover calc(var(--a) + 12%);
+    }
+    /* Its top takes the same dusk wash as the hero's bottom, so they meet. */
+    .nf::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 30%;
+      z-index: -1;
+      background: linear-gradient(to bottom, rgba(232, 150, 120, 0.38), transparent);
+      animation-name: nf-dusk;
+      animation-duration: 1ms;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-timeline: --hero;
+      animation-range-start: exit 0%;
+      animation-range-end: exit 100%;
+    }
+  }
+}
+/* Opacity only: the compositor fades them in for free. From 1%, not 0:
+   Chrome doesn't raster a fully transparent layer, so it would be drawn
+   mid-fade with pieces missing. */
+@keyframes nf-star {
+  from {
+    opacity: 0.01;
+  }
+}
+@keyframes nf-draw {
+  from {
+    stroke-dasharray: 0 2000;
+  }
+  to {
+    stroke-dasharray: 2000 0;
+  }
+}
+@keyframes nf-dusk {
+  from {
+    opacity: 0;
+  }
+}

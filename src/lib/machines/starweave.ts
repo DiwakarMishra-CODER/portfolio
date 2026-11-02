@@ -7,8 +7,8 @@ export type StarweaveData = {
   source: string;
   sourceDate: string;
   realms: string[];
-  /** [id, name, x, y, realmIndex] */
-  artists: [string, string, number, number, number][];
+  /** [id, name, x, y, realmIndex, star colour on the live map, influence score] */
+  artists: [string, string, number, number, number, string, number][];
   /** [influenced, influencer, tier (0 first-person, 1 reported, 2 critic), quote, source] */
   links: [number, number, number, string, string][];
   /** [artist, the artist they denied was an influence] */
@@ -109,4 +109,13 @@ export function hopLink(adj: Adj, a: number, b: number) {
   let best: { to: number; cost: number; link: number } | null = null;
   for (const e of adj[a]) if (e.to === b && (!best || e.cost < best.cost)) best = e;
   return best;
+}
+
+/** Where each artist sits on the live map, as 0..1 of the map's extent (the
+ *  sky behind the Starweave room, and the stars that come out at nightfall). */
+export function mapPlace(data: StarweaveData) {
+  const xs = data.artists.map((a) => a[2]);
+  const ys = data.artists.map((a) => a[3]);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  return (i: number) => ({ x: (data.artists[i][2] - x0) / (x1 - x0), y: (data.artists[i][3] - y0) / (y1 - y0) });
 }

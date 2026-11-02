@@ -1,0 +1,237 @@
+/* ─────────────────────────────────────────────────────────────
+   The lights go down (between Starweave and Arthouse Atlas): Starweave's
+   night runs into a cinema's black, its last stars go out, a projector
+   beam comes on, an Academy leader counts down on the screen, the host's
+   shadow crosses it, then the opening title. Scroll-driven, compositor
+   only (opacity from 0.01, transforms); outside the gate: the lit screen
+   and its title.
+   ───────────────────────────────────────────────────────────── */
+.ld {
+  --black: #050505;
+  --white: #f1ece2;
+  --gold: #d9ad62;
+  position: relative;
+  background: linear-gradient(to bottom, #16112b, var(--black) 34%);
+  color: var(--white);
+}
+.ld-stage {
+  position: relative;
+  height: max(100svh, 620px);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.ld-stars i {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #f3efff 30%, rgba(243, 239, 255, 0.35) 55%, transparent);
+  scale: 2.4;
+}
+/* The beam: from the projector's lens to the screen. HostLayer sets its
+   shape (clip-path) from the lens's real position once he's at it; until
+   then it waits unlit. */
+.ld-beam {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 0 0, 0 0);
+  background: linear-gradient(to left top, rgba(255, 244, 214, 0.26), rgba(241, 236, 226, 0.07) 75%);
+  pointer-events: none;
+}
+.ld-dust {
+  position: absolute;
+  inset: -20% 0;
+  background:
+    radial-gradient(circle, rgba(255, 244, 214, 0.55) 0 1px, transparent 1.6px) 0 0 / 53px 61px,
+    radial-gradient(circle, rgba(255, 244, 214, 0.4) 0 1px, transparent 1.6px) 21px 17px / 89px 73px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ld-dust {
+    animation: ld-drift 14s linear infinite;
+  }
+}
+@keyframes ld-drift {
+  to {
+    translate: -6% -10%;
+  }
+}
+
+/* The screen: up and to the left; he and the projector stand down front, right. */
+.ld-screen {
+  position: absolute;
+  left: 7%;
+  top: 11%;
+  width: min(780px, 62vw);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #121110;
+  box-shadow: 0 0 0 1px rgba(241, 236, 226, 0.08), 0 30px 120px -20px rgba(241, 236, 226, 0.2);
+}
+.ld-light {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(110% 85% at 62% 58%, #4a4237, #1d1a16 72%, #100f0d);
+}
+/* An old print's fine grain, over the title. */
+.ld-grain {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, rgba(241, 236, 226, 0.05) 0 0.7px, transparent 1px) 0 0 / 5px 7px,
+    radial-gradient(circle, rgba(241, 236, 226, 0.04) 0 0.6px, transparent 0.9px) 2px 3px / 11px 13px;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.ld-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(60% 60% at 50% 62%, #fff8e6, rgba(255, 248, 230, 0.4) 60%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+.ld-title {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 6px;
+  text-align: center;
+  color: var(--white);
+}
+.ld-title p:first-child {
+  font-family: var(--font-ah-label);
+  font-size: 14px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.ld-title-name {
+  font-family: var(--font-ah-serif);
+  font-size: clamp(40px, 6vw, 88px);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.05;
+}
+/* Where he stands, with the projector at his right. (".ld" for weight over
+   the shared .pg-spot / .host-bubble rules, which position them in flow.) */
+.ld .ld-spot {
+  position: absolute;
+  right: 4%;
+  bottom: 3%;
+  width: min(440px, 36vw);
+  aspect-ratio: 6 / 5;
+}
+.ld .ld-bubble {
+  position: absolute;
+  margin: 0;
+  right: 6%;
+  bottom: calc(3% + min(440px, 36vw) * 0.83 + 8px);
+  max-width: 260px;
+}
+@media (max-width: 760px) {
+  .ld .ld-screen {
+    left: 5%;
+    top: 10%;
+    width: 90vw;
+    aspect-ratio: 4 / 3;
+  }
+  .ld .ld-spot {
+    right: 50%;
+    translate: 50% 0;
+    width: min(340px, 86vw);
+  }
+  .ld .ld-bubble {
+    right: 5%;
+    bottom: calc(3% + min(340px, 86vw) * 0.83 + 8px);
+  }
+}
+
+/* ── The sequence, scrubbed by the scroll ─────────────────── */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ld {
+      height: 230svh;
+      view-timeline: --ld block;
+    }
+    .ld-stage {
+      position: sticky;
+      top: 0;
+    }
+    .ld-stars i,
+    .ld-beam,
+    .ld-light,
+    .ld-title p {
+      animation-duration: 1ms;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-timeline: --ld;
+    }
+    /* House lights: the stars go out one by one as the block comes up. */
+    .ld-stars i {
+      animation-name: ld-out;
+      animation-range: entry var(--a) entry calc(var(--a) + 12%);
+    }
+    /* He's been cranking; the lamp catches and the beam flickers on. */
+    .ld-beam,
+    .ld-light {
+      animation-name: ld-flicker;
+      animation-range: contain 16% contain 30%;
+    }
+    /* The title comes up on the screen like an old print, flickering. */
+    .ld-title p:first-child {
+      animation-name: ld-print;
+      animation-range: contain 34% contain 50%;
+    }
+    .ld-title-name {
+      animation-name: ld-print;
+      animation-range: contain 48% contain 66%;
+    }
+  }
+}
+@keyframes ld-out {
+  to {
+    opacity: 0.01;
+  }
+}
+@keyframes ld-flicker {
+  0% {
+    opacity: 0.01;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  45% {
+    opacity: 0.15;
+  }
+  60% {
+    opacity: 0.9;
+  }
+  72% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes ld-print {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.7;
+  }
+  35% {
+    opacity: 0.2;
+  }
+  55% {
+    opacity: 0.85;
+  }
+  65% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 1;
+  }
+}

@@ -22,6 +22,8 @@ export type ArthouseData = {
   /** shelf film → neighbour → how many people loved both. */
   both: Record<string, Record<string, number>>;
   minimumBoth: number;
+  /** tmdbId → the live site's own id (for /movie/<id> links). */
+  ids?: Record<string, string>;
 };
 
 export type Ranked = { tmdbId: number; score: number; prior: number; parts: number[]; because: number };

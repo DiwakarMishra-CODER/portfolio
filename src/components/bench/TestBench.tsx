@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { HostSaid } from "@/components/home/HostSaid";
 import { useInViewOnce } from "@/lib/useInViewOnce";
 import { ARTHOUSE as A, STARWEAVE as S, fmt } from "@/data/figures";
 import linkcheck from "@/data/linkcheck.json";
@@ -65,6 +66,7 @@ const CHECKS: Check[] = [
           links: d.links.length,
           sourced: d.links.filter(([, , , q, s]) => q && s).length,
           firstPerson: d.links.filter(([, , t]) => t === 0).length,
+          reported: d.links.filter(([, , t]) => t === 1).length,
           sites: hosts.size,
           denials: d.denials.length,
         };
@@ -158,14 +160,12 @@ export default function TestBench() {
   const passed = outcomes.filter((o) => o?.pass).length;
 
   return (
-    <section id="about" data-part="Test bench" className="relative film-surface border-t border-hairline px-[var(--gutter)] py-28" aria-labelledby="bench-title">
+    <section id="checks" data-part="Test bench" className="relative px-[var(--gutter)] py-28" aria-labelledby="bench-title">
       <div className="mx-auto max-w-[1312px]">
         <div className="grid grid-cols-12 gap-x-[clamp(12px,1.7vw,24px)] gap-y-6">
           <div className="col-span-12 min-[900px]:col-span-7">
-            <p className="type-label text-graphite">
-              <span className="text-signal-ink">How I work</span>&nbsp; Test bench
-            </p>
-            <h2 id="bench-title" className="mt-5 max-w-[18ch] text-[clamp(30px,3.6vw,54px)] font-[750] leading-[1.02] [font-variation-settings:'wdth'_112]">
+            <HostSaid spot="checks" />
+            <h2 id="bench-title" className="mt-7 max-w-[18ch] text-[clamp(32px,3.8vw,56px)] font-[800] leading-[1.0] tracking-[-0.035em]">
               The rules I build by, checked by this page as you read.
             </h2>
           </div>

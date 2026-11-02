@@ -1,0 +1,110 @@
+/* ─────────────────────────────────────────────────────────────
+   What every project room shares: his lane (sticky, on wide screens),
+   where whatever he's holding up shows above him, his bubble at his side;
+   and the ghost hand that taps what a guide asks you to tap.
+   ───────────────────────────────────────────────────────────── */
+.room-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.room-lane {
+  display: none;
+}
+/* Wide: two places. Where you act (left), and his column (what it means):
+   he stands in it, holding up what you found by its edge beside his head,
+   his bubble at his side. */
+@media (min-width: 1280px) {
+  .room-grid {
+    grid-template-columns: minmax(0, 1fr) 470px;
+    column-gap: 40px;
+  }
+  .room-lane {
+    display: block;
+  }
+  .room-lane-inner {
+    position: sticky;
+    top: 92px;
+  }
+  /* What he holds has a fixed baseline (a tall one grows upward), so his
+     raised hand always meets its edge. */
+  .room-slot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 330px;
+  }
+  .room-slot > * {
+    width: 350px;
+  }
+  /* He's drawn over what he holds, so his raised hand grips its edge. */
+  .room-host-row {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    align-items: end;
+    margin: -150px -40px 0 0;
+    pointer-events: none;
+  }
+  .room-host-row > * {
+    pointer-events: auto;
+  }
+  .room-host-row .pg-spot[data-size="lane"] {
+    width: 260px;
+  }
+  .room-host-row .host-bubble {
+    z-index: 1;
+    margin: 0 -56px 34px 0;
+  }
+  .room-host-row .host-bubble::after {
+    top: auto;
+    bottom: 22px;
+    left: auto;
+    right: -7px;
+    margin: 0;
+    box-shadow: 1.5px -1.5px 0 0 var(--ink);
+  }
+}
+
+/* The ghost of a tap (as Starweave's own tour does it): a hand pressing the
+   thing to tap. Each room places it on its target. */
+.tap-hand {
+  position: absolute;
+  z-index: 3;
+  width: 40px;
+  height: 49px;
+  overflow: visible;
+  pointer-events: none;
+  rotate: -16deg;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+}
+.tap-hand path {
+  fill: #fff8ec;
+  stroke: var(--ink);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.tap-hand .tap-hand-crease {
+  fill: none;
+  stroke-width: 1.8;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tap-hand {
+    animation: tap-hand 1.6s var(--ease-glide) infinite;
+  }
+}
+/* In from the lower right, a press (where the ripple starts), back off. */
+@keyframes tap-hand {
+  0%,
+  100% {
+    translate: 14px 16px;
+    scale: 1;
+  }
+  40%,
+  58% {
+    translate: 0 0;
+    scale: 0.88;
+  }
+}

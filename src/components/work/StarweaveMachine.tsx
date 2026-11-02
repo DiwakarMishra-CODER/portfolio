@@ -132,7 +132,7 @@ export default function StarweaveMachine() {
       const dpr = window.devicePixelRatio || 1;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      const mono = getComputedStyle(document.documentElement).getPropertyValue("--font-martian") || "monospace";
+      const mono = getComputedStyle(document.documentElement).getPropertyValue("--font-sans") || "sans-serif";
 
       // Every link on the map, as one faint hairline path.
       ctx.beginPath();
