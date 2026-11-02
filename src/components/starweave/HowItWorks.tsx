@@ -10,7 +10,7 @@ import { STARWEAVE as S, fmt } from "@/data/figures";
 
 type Track = "proof" | "route" | "tests";
 
-export default function HowItWorks({ source, tests, builtWith }: { source: string; tests: { cases: number; files: number }; builtWith: string }) {
+export default function HowItWorks({ source, tests }: { source: string; tests: { cases: number; files: number } }) {
   const [open, setOpen] = useState<Track | null>(null);
   const critic = S.links - S.firstPerson - S.reported;
 
@@ -114,7 +114,6 @@ export default function HowItWorks({ source, tests, builtWith }: { source: strin
           </li>
         ))}
       </ol>
-      <p className="hiw-credits">Built with {builtWith}.</p>
     </div>
   );
 }

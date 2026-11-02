@@ -200,7 +200,7 @@ export default function DoubleBill({ shelf, live }: { shelf: ShelfFilm[]; live: 
               </>
             )
           ) : (
-            <p>Every seat is real people: the ones who loved your film.</p>
+            <p>Every seat is a real person who loved your film.</p>
           )}
         </div>
         {/* The seats the caption above is about. */}

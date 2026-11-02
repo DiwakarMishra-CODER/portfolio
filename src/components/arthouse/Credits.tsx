@@ -6,19 +6,25 @@ import { ARTHOUSE as A, fmt } from "@/data/figures";
  * with what it beat. Plain words only: no film-industry jargon.
  * Every figure is from figures.ts (the 2026-10-22 evaluation).
  */
-export default function Credits({ live, source, builtWith }: { live: string; source: string; builtWith: string }) {
+export default function Credits({ live, source }: { live: string; source: string }) {
   const roles: [string, React.ReactNode][] = [
     ["Films", `${fmt(A.films)} art films, 1915 to 2025`],
     ["Directors · Movements", `${A.directors} · ${A.movements}`],
-    ["The canon", `${A.lists} critics’ and festival lists in ${A.canonFamilies} families, ${fmt(A.canonCitations)} citations`],
-    ["Recommender", "EASE (Steck, 2019), λ = 100, 50 neighbours a film"],
+    ["The canon", `Ranked by ${A.lists} lists from critics, filmmakers and festivals: ${fmt(A.canonCitations)} mentions in all`],
+    [
+      "Recommender",
+      <>
+        Learns which films the same people love
+        <small>EASE (Steck, 2019) · λ = 100 · 50 neighbours a film</small>
+      </>,
+    ],
     ["Trained on", `MovieLens: ${fmt(A.ratings)} ratings by ${fmt(A.people)} people`],
-    ["Tested on", `${fmt(A.testPeople)} people it never saw. The test was locked before it ran.`],
+    ["Tested on", `${fmt(A.testPeople)} people it never saw. The test was written down before it ran, so it couldn’t be tuned to pass.`],
   ];
   const board: { what: string; big: string; pct: number; beat: string }[] = [
-    { what: "found a film they went on to love in its 10 picks", big: "2 in 3", pct: A.laterLove, beat: `old engine ${A.oldLaterLove}% · most popular ${A.popLaterLove}%` },
-    { what: "found the exact next film they loved", big: "1 in 3", pct: A.hitRate, beat: `random ${A.randomHitRate}% · old engine ${A.oldHitRate}% · most popular ${A.popHitRate}%` },
-    { what: "Recall@20, the published test", big: `${A.recall20}%`, pct: A.recall20, beat: `most popular ${A.popRecall20}%` },
+    { what: "found a film they went on to love in its 10 picks", big: "2 in 3", pct: A.laterLove, beat: `the site’s first engine ${A.oldLaterLove}% · just the most popular films ${A.popLaterLove}%` },
+    { what: "found the exact next film they loved", big: "1 in 3", pct: A.hitRate, beat: `random picks ${A.randomHitRate}% · first engine ${A.oldHitRate}% · just the most popular films ${A.popHitRate}%` },
+    { what: "of the films people went on to love were in its top 20 picks", big: `${A.recall20}%`, pct: A.recall20, beat: `just the most popular films ${A.popRecall20}% · “Recall@20”, the standard research measure` },
   ];
   return (
     <div className="ah-credits" data-part="Arthouse · end credits">
@@ -47,12 +53,6 @@ export default function Credits({ live, source, builtWith }: { live: string; sou
           </div>
         ))}
       </div>
-      <dl className="ah-roles">
-        <div>
-          <dt>Built with</dt>
-          <dd>{builtWith}</dd>
-        </div>
-      </dl>
       <p className="ah-credits-links">
         <a href={live} target="_blank" rel="noreferrer">
           Open Arthouse Atlas ↗

@@ -7,7 +7,7 @@ const sans = Schibsted_Grotesk({ variable: "--font-sans", subsets: ["latin"] });
 
 // SERP / social text only — never rendered on the page.
 const SITE_DESCRIPTION =
-  "Diwakar Mishra — software engineer, CSE-AI class of 2028. Two products, built end to end: an influence map of 312 indie artists with every link sourced, and a 1,120-film recommender.";
+  "Diwakar Mishra — software engineer, CSE-AI class of 2028. Two products, built end to end: an influence map of 312 indie artists with every link sourced, and a 1,120-film recommender. Open to frontend, backend and full-stack internships.";
 
 // Absolute base for the Open Graph image and the canonical URL. PREFER SETTING
 // NEXT_PUBLIC_SITE_URL EXPLICITLY IN THE VERCEL PROJECT — the

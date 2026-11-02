@@ -33,6 +33,8 @@ export const QUIP = {
   count: { 5: "Five pokes. I'm counting.", 10: "Ten. Very thorough. I like that in a reviewer." } as Record<number, string>,
   hintPoke: "You can poke me.",
   hintLift: "You can also pick me up.",
+  /** After the first poke, his voice off: where the switch is (once a visit). */
+  hintVoice: "I have a voice, too. Switch is right under me.",
   lifted: "Whoa. Gently.",
   land: ["Ow. Worth it.", "I'll walk back."],
   landHard: "That was a bit much.",

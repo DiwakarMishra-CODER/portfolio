@@ -129,13 +129,13 @@ export default function HostLayer() {
       const fig = document.querySelector<HTMLElement>(`[data-host-said="${s.dataset.hostSpot}"]`);
       return fig ? { el: fig, on: "is-quipping", text: fig.querySelector<HTMLElement>(".host-quip") } : null;
     };
-    // ms = 0: a line of the conversation, kept until the next one (lanes
-    // only; elsewhere it shows for a long moment, over the story line).
+    // Every line shows for a read, then goes (ms = 0: as long as the line
+    // needs). Nothing is replayed later: a line belongs to its moment.
     let sayTimer = 0;
     let said_ = 0; // lines said so far, so a delayed line can tell it was overtaken
-    const kept = new Map<HTMLElement, string>(); // each spot's last kept line
     const show = (b: NonNullable<ReturnType<typeof bubbleAt>>, line: string) => {
       b.text!.textContent = line;
+      sound.say(line); // (only with his sound on)
       b.el.classList.remove(b.on);
       void b.el.offsetWidth; // restart the entrance
       b.el.classList.add(b.on);
@@ -146,8 +146,6 @@ export default function HostLayer() {
       said_++;
       show(b, line);
       clearTimeout(sayTimer);
-      const lane = b.on === "is-on";
-      if (ms === 0 && lane) kept.set(spot, line);
       // Every line goes after a read (a bubble that never goes is wallpaper,
       // and people learn to look past him). Longer lines stay longer.
       const read = Math.min(9000, 3200 + line.split(" ").length * 280);
@@ -166,6 +164,7 @@ export default function HostLayer() {
         quote.prepend(p);
       }
       p.textContent = line;
+      sound.say(line);
       p.classList.remove("is-new");
       void p.offsetWidth; // restart the entrance
       p.classList.add("is-new");
@@ -256,6 +255,9 @@ export default function HostLayer() {
       act(r);
       rehold(2200);
       if (director.pokes === 2 && engine && director.firstTime("lift")) after(SAY_MS + 200, () => say(QUIP.hintLift));
+      // The first poke on the first screen, his voice off: where to turn it on (once).
+      else if (director.pokes === 1 && !sound.on && spot === homeSpot && director.firstTime("voice"))
+        after(SAY_MS + 200, () => spot === homeSpot && !sound.on && say(QUIP.hintVoice));
     };
     hit.addEventListener("click", onClick);
 
@@ -548,12 +550,12 @@ export default function HostLayer() {
       touch();
       window.dispatchEvent(new Event("hostmove"));
       // In a lane: first time in, the room's story (the page prints it only
-      // where there's no lane); coming back, where the conversation was.
+      // where there's no lane). Coming back, nothing is repeated: an answer
+      // to something you did once ("Copied. Talk soon.") would arrive out of
+      // nowhere.
       const name = next.dataset.hostSpot as Spot;
       if (next.closest("[data-host-lane]")) {
-        const back = kept.get(next);
-        if (back) after(400, () => spot === next && say(back, 0));
-        else if (!told.has(name) && STORY[name]) {
+        if (!told.has(name) && STORY[name]) {
           told.add(name);
           after(400, () => spot === next && say(STORY[name].join(" "), 0));
         }
@@ -843,8 +845,10 @@ export default function HostLayer() {
     const outAt = (q: number) => (0.45 * innerHeight + q * (lu!.offsetHeight - luStage!.offsetHeight)) / lu!.offsetHeight;
     const OUT_REACH = 0.47; // q: at the door as it finishes opening
     const OUT_GONE = 0.55; // q: through it, into the light
-    const OUT_CYCLES = 3.5;
+    const OUT_BACK = 0.68; // q: the light has filled the screen; he comes back out of it
+    const OUT_CYCLES = 5.5;
     let outStep = 0;
+    let outLast = 0;
     const walkOut: Trip = {
       from: outFrom,
       to: aboutStop,
@@ -867,9 +871,18 @@ export default function HostLayer() {
           const u = 1 - t;
           return { x: u * u * a.x + 2 * u * t * c.x + t * t * b.x, y: u * u * a.y + 2 * u * t * c.y + t * t * b.y, k: lerp(a.h, b.h, t) / base };
         }
-        // Into the doorway, a little further in and smaller.
-        const u = Math.min(1, (p - pr) / (outAt(OUT_GONE) - pr));
-        return { x: b.x, y: b.y - u * d.height * 0.06, k: (b.h * (1 - 0.2 * u)) / base };
+        const pg = outAt(OUT_GONE);
+        if (p <= pg) {
+          // Into the doorway, a little further in and smaller.
+          const u = (p - pr) / (pg - pr);
+          return { x: b.x, y: b.y - u * d.height * 0.06, k: (b.h * (1 - 0.2 * u)) / base };
+        }
+        // Then, as the daylight floods the screen, he walks back out of it
+        // toward you: from the doorway (small, far) to his spot by the photo.
+        const c = box(aboutStop()!);
+        const t = ease(Math.max(0, (p - outAt(OUT_BACK)) / (1 - outAt(OUT_BACK))));
+        const h0 = b.h * 0.8;
+        return { x: lerp(b.x, c.x, t), y: lerp(b.y - d.height * 0.06, c.y, t), k: lerp(h0, c.h, t) / base };
       },
       box: () => outFrom()!,
       start: (p) => {
@@ -882,41 +895,44 @@ export default function HostLayer() {
         const pg = outAt(OUT_GONE);
         const ph = walkOutPhase(p);
         engine!.scrub("walk", ph);
+        const pb = outAt(OUT_BACK);
         const step = Math.floor(ph * 2);
-        if (step !== outStep && p < pg) {
+        if (step !== outStep && (p < pg || p > pb)) {
           outStep = step;
           sound.step();
         }
-        // Toward the door (3/4 on to us), then his back to us as he nears it.
+        // Toward the door (3/4 on to us), his back to us as he nears it; out
+        // of the light, facing us again (he turns while the light hides him).
         const dir = Math.sign(luDoor!.getBoundingClientRect().left - box(outFrom()!).x) || -1;
-        engine!.yaw(p < pr * 0.55 ? dir * 1.1 : dir * 2.6);
-        canvas!.style.opacity = p <= pr ? "" : String(Math.max(0, 1 - (p - pr) / (pg - pr)));
+        engine!.yaw(p > pg ? null : p < pr * 0.55 ? dir * 1.1 : dir * 2.6);
+        // Gone into the light, then back out of it.
+        const op = p <= pr ? 1 : p <= pg ? 1 - (p - pr) / (pg - pr) : p <= pb ? 0 : Math.min(1, (p - pb) / ((1 - pb) * 0.18));
+        canvas!.style.opacity = op >= 1 ? "" : String(Math.max(0, op));
+        // The door's hinge as he reaches it (going forward).
+        if (p >= pr * 0.8 && outLast < pr * 0.8) sound.creak();
+        outLast = p;
       },
       arrive: (end) => {
         canvas!.style.opacity = "";
         engine!.yaw(null);
         engine!.play("idle", { fade: 0.3 });
         if (end === "from") return moveTo(outFrom()!, { flown: true, land: false });
-        // Out of the light and into About: he walks in from the side.
+        // He walked out of the light onto his spot by the photo: he just stops.
         moveTo(aboutStop()!, { flown: true, land: false });
-        if (reduced()) return;
-        engine!.face(1);
-        engine!.play("walk");
-        canvas!.animate([{ translate: "calc(-50% - 90px) 0", opacity: 0 }, { translate: "-50% 0", opacity: 1 }], { duration: 750, easing: "cubic-bezier(0.2, 0, 0, 1)" });
-        after(750, () => {
-          if (spot !== aboutStop() || phase !== "home") return;
-          engine?.face(0);
-          engine?.play("idle", { fade: 0.3 });
-        });
       },
     };
     // Down to the end of the tour: from About's column into Contact's as
     // Contact comes up (its top from 95% to 45% of the screen, where it takes
-    // him anyway), steps scrubbed by the scroll. There he holds up his card.
+    // him anyway), steps scrubbed by the scroll: to the front edge of About's
+    // floor, a hop down off it into the evening (a small arc, a thud), then on
+    // to the horizon, where he holds up his card.
     const ctEl = document.querySelector<HTMLElement>("#contact");
     const ctStop = () => stops().find((s) => s.closest("#contact"));
-    const DOWN_CYCLES = 1.5;
+    const DOWN_CYCLES = 2;
+    const HOP_FROM = 0.34; // p: off the front of About's floor…
+    const HOP_TO = 0.6; // …and down into the evening
     let downStep = 0;
+    let downLast = 0;
     const walkDown: Trip = {
       from: aboutStop,
       to: ctStop,
@@ -925,7 +941,8 @@ export default function HostLayer() {
         const a = box(aboutStop()!);
         const b = box(ctStop()!);
         const t = ease(p);
-        return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), k: lerp(a.h, b.h, t) / walkDown.box().offsetHeight };
+        const h = Math.sin(Math.PI * Math.min(1, Math.max(0, (p - HOP_FROM) / (HOP_TO - HOP_FROM))));
+        return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) - h * a.h * 0.16, k: lerp(a.h, b.h, t) / walkDown.box().offsetHeight };
       },
       box: () => (ctStop()!.offsetHeight > aboutStop()!.offsetHeight ? ctStop()! : aboutStop()!),
       start: (p) => {
@@ -934,16 +951,23 @@ export default function HostLayer() {
         engine!.scrub("walk", p * DOWN_CYCLES);
       },
       frame: (p) => {
+        // Mid-hop his legs tuck (the wind-up's bend), then the walk again.
+        const hop = p > HOP_FROM && p < HOP_TO;
+        engine!.scrub("windup", hop ? Math.sin(Math.PI * ((p - HOP_FROM) / (HOP_TO - HOP_FROM))) * 0.45 : 0);
         engine!.scrub("walk", p * DOWN_CYCLES);
         const step = Math.floor(p * DOWN_CYCLES * 2);
-        if (step !== downStep) {
+        if (step !== downStep && !hop) {
           downStep = step;
           sound.step();
         }
+        if (p >= HOP_TO && downLast < HOP_TO) sound.land(500);
+        downLast = p;
       },
       arrive: (end) => {
+        engine!.scrub("windup", 0);
         engine!.play("idle", { fade: 0.3 });
         moveTo(end === "from" ? aboutStop()! : ctStop()!, { flown: true, land: false });
+        if (end === "to") after(450, () => spot === ctStop() && sound.flick()); // his card comes out
         // (Already at the bottom when he gets here: no scroll is coming to wave on.)
         if (end === "to") after(700, goodbye);
       },
@@ -969,7 +993,8 @@ export default function HostLayer() {
         });
       });
     };
-    const walkOutPhase = (p: number) => (Math.min(p, outAt(OUT_GONE)) / outAt(OUT_GONE)) * OUT_CYCLES;
+    // His steps run the whole way (in, and back out of the light).
+    const walkOutPhase = (p: number) => p * OUT_CYCLES;
     const trips = [nightfall, walkIn, intoFilm, ...(lu && luStage && luDoor ? [walkOut] : []), ...(ctEl ? [walkDown] : [])];
     const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
     const ready = (t: Trip) => !!(t.from() && t.to());
@@ -1046,7 +1071,10 @@ export default function HostLayer() {
       ldScreen?.animate([{ scale: "1" }, { scale: "1.03" }, { scale: "1" }], { duration: 480, easing: "cubic-bezier(0.2, 0, 0, 1)" });
       sound.land(1100);
     };
-    // Out of the film, into Arthouse's room: a flash where he stands.
+    // Out of the dive, into Arthouse's room: the dive is how he gets to his
+    // seat. He drops in from the top of his column straight into it (already
+    // sitting, popcorn in hand) with a small bounce; narrower screens, no
+    // seat, he just drops onto his spot.
     const leaveFilm = (to: HTMLElement) => {
       offDive();
       phase = "home";
@@ -1054,9 +1082,18 @@ export default function HostLayer() {
       hit.style.visibility = "";
       engine!.setFast(false);
       canvas!.style.opacity = "";
-      moveTo(to, { flown: true });
+      moveTo(to, { flown: true, land: false });
       flightBox.remove();
-      canvas!.animate([{ scale: "0.3", opacity: 0, filter: "brightness(3)" }, { scale: "1", opacity: 1, filter: "brightness(1)" }], { duration: 520, easing: "cubic-bezier(0.2, 0, 0, 1)" });
+      if (to === ahLane()) {
+        engine!.sit(true, true);
+        applauded = false;
+        seatRun++;
+      }
+      const drop = canvas!.animate([{ translate: "-50% -260px", opacity: 0 }, { translate: "-50% -260px", opacity: 1, offset: 0.08 }, { translate: "-50% 0" }], { duration: 460, easing: "cubic-bezier(0.55, 0, 1, 0.45)" });
+      drop.onfinish = () => {
+        sound.land(900);
+        canvas?.animate([{ translate: "-50% 0" }, { translate: "-50% -16px" }, { translate: "-50% 0" }], { duration: 260, easing: "cubic-bezier(0.2, 0, 0, 1)" });
+      };
     };
     const DUST = ["#f0c97a", "#8fd0ff", "#f3efff", "#ff9fc4"];
     const dust = (x: number, y: number) => {
@@ -1108,11 +1145,16 @@ export default function HostLayer() {
       ];
       ldBeam.style.clipPath = `polygon(${hull(pts).map(([x, y]) => `${x.toFixed(0)}px ${y.toFixed(0)}px`).join(", ")})`;
     };
+    let lampLit = false;
     const inCinema = () => {
       if (!engine || !ld) return;
       const r = ld.getBoundingClientRect();
       const p = Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - innerHeight)));
       engine.reel(p * 36, p > LAMP_AT);
+      // The lamp catching (going forward): its motor runs up.
+      const lit = p > LAMP_AT;
+      if (lit && !lampLit && phase === "home") sound.whirr();
+      lampLit = lit;
       const run = p > 0.01 && p < 0.97 && phase === "home" && !mounting;
       if (run && !cranking) {
         // Out of the mount's last pose (the same as the crank's first).
@@ -1125,10 +1167,11 @@ export default function HostLayer() {
     };
 
     // ── Arthouse: he watches the film with you ───────────────────────────
-    // In Arthouse's column (wide screens) his cinema seat stands behind him.
-    // When the screen comes up he sits down with popcorn, eyes on it, and
-    // stays for the credits; when they finish he gets up, stretches and
-    // claps. Scroll back up and he just gets up.
+    // In Arthouse's column (wide screens) he's in his cinema seat with
+    // popcorn: he lands in it out of the dive, and stays for the whole room,
+    // eyes on the screen while it's in view; when the credits finish he gets
+    // up, stretches and claps. Scrolling back up takes him back into the
+    // film (the dive, reversed).
     const ahRoom = document.querySelector<HTMLElement>("#arthouse");
     const ahLane = () => ahRoom?.querySelector<HTMLElement>('[data-host-lane] [data-host-stop]') ?? null;
     let applauded = false;
@@ -1145,7 +1188,7 @@ export default function HostLayer() {
       const screen = ahRoom.querySelector<HTMLElement>(".ah-screen");
       if (!stage || !screen) return;
       const over = ahRoom.getBoundingClientRect().bottom < innerHeight * 0.8;
-      const showing = stage.getBoundingClientRect().top < innerHeight * 0.55 && !over;
+      const showing = !over;
       if (showing && !engine.sitting()) {
         if (asleep) wake();
         engine.stopSmall(0.25); // (lowers the ticket: it stays in the column)
@@ -1164,8 +1207,9 @@ export default function HostLayer() {
         } else rehold(700);
       }
       if (engine.sitting()) {
+        // Eyes on the screen while it's in view; otherwise, on you.
         const r = screen.getBoundingClientRect();
-        engine.gaze({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+        engine.gaze(r.bottom > 0 && r.top < innerHeight ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null);
       }
     };
 
@@ -1174,10 +1218,14 @@ export default function HostLayer() {
     // presenter's reveal, eyes on it. Scrubbed, so it runs both ways.
     const swCut = document.querySelector<HTMLElement>("#starweave .ps-stage");
     let revealing = false;
+    let lastLid = 0;
     const revealCut = () => {
       if (!engine || !swCut) return;
       const here = phase === "home" && !!spot.closest("#starweave [data-host-lane]");
       const lid = here ? Number(swCut.dataset.lid ?? 0) : 0;
+      // The latch, as it starts to open (forward only).
+      if (lid > 0.03 && lastLid <= 0.03) sound.click();
+      lastLid = lid;
       if (lid > 0 && lid < 1) {
         if (asleep) wake();
         touch();
@@ -1296,6 +1344,7 @@ export default function HostLayer() {
           // (Scrolled past the tree untapped: the page's own prompt asks; he just looks.)
           engine.play("look");
         } else if (d.step === 1) {
+          sound.paper();
           say(GUIDE.proof(d.b ?? "", d.a ?? "", !!spot.closest("[data-host-lane]")), 0);
         } else if (d.step === 2) {
           say(GUIDE.walk(d.a ?? ""), 0);
@@ -1309,6 +1358,7 @@ export default function HostLayer() {
           engine.play("nod");
         }
       } else if (d.kind === "proof") {
+        sound.paper();
         say(REACT.proof[d.tier ?? 0], 0);
         engine.play("nod");
       } else if (d.kind === "song" && d.on) {
@@ -1318,12 +1368,14 @@ export default function HostLayer() {
         say(REACT.route, 0);
         engine.play("point");
       } else if (d.kind === "double") {
+        sound.tear();
         say(REACT.double, 0);
         engine.play("nod");
       } else if (d.kind === "walk") {
         say(REACT.walk, 0);
         engine.play("look");
       } else if (d.kind === "copied") {
+        sound.flick();
         say(REACT.copied, 0);
         engine.play("nod");
       }

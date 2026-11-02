@@ -65,6 +65,7 @@ export default function StarweaveRoom({ n }: { n: number }) {
           <p className="room-spec">
             {fmt(S.artists)} artists · {fmt(S.links)} links, every one with a source · {p.parts.find((x) => x.k === "Built with")?.v}
           </p>
+          <p className="room-own">Designed, built and shipped by me.</p>
           <p className="room-actions">
             <a href={p.live} target="_blank" rel="noreferrer">
               Open Starweave ↗
@@ -90,7 +91,7 @@ export default function StarweaveRoom({ n }: { n: number }) {
           </div>
 
           <div data-host-cue="starweave:sleeve">
-            <HowItWorks source={p.source} tests={TESTS} builtWith={p.parts.find((x) => x.k === "Built with")?.v ?? ""} />
+            <HowItWorks source={p.source} tests={TESTS} />
           </div>
         </div>
 

@@ -1,28 +1,22 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
-import { HERO_EYEBROW, HERO_LINE } from "@/data/copy";
+import { HERO_LINE } from "@/data/copy";
+import { AVAILABLE, PROJECTS, STATS } from "@/data/site";
 
-// The link preview (LinkedIn, recruiter DMs): the hero in the Cutaway look —
-// drafting film, alignment marks, a dimension line, the name set heavy.
-// The name is set in a vendored static instance of Archivo (Expanded,
-// ExtraBold) read from the repo — no network font fetch at build — and the
+// The link preview (LinkedIn, WhatsApp, recruiter DMs): often the first
+// thing a recruiter sees, so it says what the first screen says, in the
+// first screen's look (warm sand, the dawn glow, the "dm" mark): who, the
+// ask, what he builds, what he's shipped, his record. The type is a vendored
+// static Archivo read from the repo (no network font fetch at build); the
 // route avoids `runtime = "edge"`, which would disable prerendering.
-export const alt = "Diwakar Mishra — Software Engineer";
+export const alt = "Diwakar Mishra, software engineer: open to frontend, backend and full-stack internships.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const INK = "#141413";
+const GRAPHITE = "#5C5B56";
 const SIGNAL = "#FF4F00";
-
-function Mark({ x, y }: { x: number; y: number }) {
-  return (
-    <svg width="34" height="34" viewBox="0 0 22 22" style={{ position: "absolute", left: x, top: y }}>
-      <path d="M11 0v22M0 11h22" stroke="rgba(20,20,19,0.5)" strokeWidth="1" />
-      <circle cx="11" cy="11" r="5" fill="none" stroke="rgba(20,20,19,0.5)" strokeWidth="1" />
-    </svg>
-  );
-}
 
 export default async function OpengraphImage() {
   const fontDir = path.join(process.cwd(), "src/assets/fonts");
@@ -30,6 +24,9 @@ export default async function OpengraphImage() {
     readFile(path.join(fontDir, "Archivo-Expanded-ExtraBold.ttf")),
     readFile(path.join(fontDir, "Archivo-Regular.ttf")),
   ]);
+  // (Plain hyphens: the card's font may not carry the non-breaking one.)
+  const plain = (t: string) => t.replace(/‑/g, "-");
+  const record = STATS.map((s) => `${s.label} ${s.value}${s.unit ? ` ${s.unit}` : ""}`).join("   ·   ");
   return new ImageResponse(
     (
       <div
@@ -38,41 +35,60 @@ export default async function OpengraphImage() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
-          padding: "0 84px",
-          background: "radial-gradient(120% 90% at 18% 8%, #F6F5F1 0%, #EDEBE5 60%)",
-          position: "relative",
+          padding: "60px 84px 58px",
+          background: "radial-gradient(60% 75% at 92% 30%, rgba(244,163,122,0.55) 0%, rgba(244,163,122,0) 70%), #F1E7D9",
           color: INK,
           fontFamily: "Archivo",
         }}
       >
-        <Mark x={20} y={20} />
-        <Mark x={1146} y={20} />
-        <Mark x={20} y={576} />
-        <Mark x={1146} y={576} />
-        {/* Dimension line: 1200 px, the card's real width. */}
-        <div style={{ position: "absolute", top: 64, left: 84, right: 84, display: "flex", alignItems: "center", color: "#B83700", fontSize: 18, letterSpacing: 3 }}>
-          <div style={{ width: 1, height: 14, background: SIGNAL, display: "flex" }} />
-          <div style={{ flex: 1, height: 1.5, background: SIGNAL, opacity: 0.6, display: "flex" }} />
-          <div style={{ padding: "0 14px", display: "flex" }}>1200 PX</div>
-          <div style={{ flex: 1, height: 1.5, background: SIGNAL, opacity: 0.6, display: "flex" }} />
-          <div style={{ width: 1, height: 14, background: SIGNAL, display: "flex" }} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          {/* The "dm" mark (the favicon). */}
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <defs>
+              <linearGradient id="s" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#F5C542" />
+                <stop offset="0.5" stopColor="#E8934A" />
+                <stop offset="1" stopColor="#E4674F" />
+              </linearGradient>
+            </defs>
+            <rect width="64" height="64" rx="14" fill="url(#s)" />
+            <path
+              fill="#F4EEE4"
+              d="M25 14h6v36h-6v-3.2a10.6 10.6 0 0 1-6.7 2.4C12.1 49.2 8 44.4 8 37.6S12.1 26 18.3 26a10.6 10.6 0 0 1 6.7 2.4V14Zm-6.1 17.5c-3.3 0-5.6 2.6-5.6 6.1s2.3 6.1 5.6 6.1 5.7-2.6 5.7-6.1-2.4-6.1-5.7-6.1Z"
+            />
+            <path
+              fill="#F4EEE4"
+              transform="translate(-4 0) scale(0.94 1)"
+              d="M36 26.8h5.7v2.7a7.4 7.4 0 0 1 5.6-2.5c2.4 0 4.3 1 5.4 2.9a7.9 7.9 0 0 1 6.1-2.9c4.3 0 7.2 3 7.2 7.7V50h-5.9V36.2c0-2.4-1.3-3.9-3.4-3.9s-3.6 1.6-3.6 4.1V50h-5.9V36.2c0-2.4-1.3-3.9-3.4-3.9s-3.5 1.6-3.5 4.1V50H36V26.8Z"
+            />
+          </svg>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 22px", borderRadius: 999, border: `2px solid ${INK}`, background: "#FFFFFF", fontSize: 24 }}>
+            <div style={{ width: 14, height: 14, borderRadius: 7, background: "#1FA65A", display: "flex" }} />
+            {plain(AVAILABLE)}
+          </div>
         </div>
 
-        <div style={{ fontSize: 22, letterSpacing: 4, textTransform: "uppercase", color: "#5C5B56", display: "flex" }}>{HERO_EYEBROW}</div>
-        <div style={{ marginTop: 18, fontFamily: "Archivo Expanded", fontSize: 124, fontWeight: 800, lineHeight: 0.9, letterSpacing: -3, textTransform: "uppercase", display: "flex", flexDirection: "column" }}>
-          <span>Diwakar</span>
-          <span>Mishra</span>
-        </div>
-        <div style={{ marginTop: 30, fontSize: 34, display: "flex" }}>{HERO_LINE}</div>
-        <div style={{ position: "absolute", bottom: 64, left: 84, fontSize: 19, letterSpacing: 2.5, textTransform: "uppercase", color: "#5C5B56", display: "flex" }}>
-          <span style={{ color: "#B83700" }}>01</span>&nbsp;&nbsp;Starweave&nbsp;&nbsp;·&nbsp;&nbsp;<span style={{ color: "#B83700" }}>02</span>&nbsp;&nbsp;Arthouse Atlas&nbsp;&nbsp;—&nbsp;&nbsp;two products, taken apart
+        <div style={{ marginTop: 56, fontFamily: "Archivo Expanded", fontSize: 94, fontWeight: 800, lineHeight: 0.95, letterSpacing: -2, display: "flex" }}>Diwakar Mishra</div>
+        <div style={{ marginTop: 26, fontSize: 38, display: "flex" }}>{HERO_LINE}</div>
+
+        <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", fontSize: 27, color: GRAPHITE }}>
+            <span>Shipped:&nbsp;</span>
+            <span style={{ color: INK, borderBottom: `3px solid ${SIGNAL}` }}>{PROJECTS[0].name}</span>
+            <span>, a {PROJECTS[0].short}, and&nbsp;</span>
+            <span style={{ color: INK, borderBottom: `3px solid ${SIGNAL}` }}>{PROJECTS[1].name}</span>
+            <span>, a {PROJECTS[1].short}.</span>
+          </div>
+          <div style={{ display: "flex", fontSize: 21, letterSpacing: 1.5, textTransform: "uppercase", color: GRAPHITE }}>{record}</div>
         </div>
       </div>
     ),
-    { ...size, fonts: [
+    {
+      ...size,
+      fonts: [
         { name: "Archivo", data: body, weight: 400, style: "normal" },
         { name: "Archivo Expanded", data: display, weight: 800, style: "normal" },
-      ] }
+      ],
+    }
   );
 }

@@ -283,3 +283,9 @@
 .ps-stage:not(.is-cut) .ps-inside {
   display: none;
 }
+/* Who made it: one plain line. */
+.room-own {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 700;
+}

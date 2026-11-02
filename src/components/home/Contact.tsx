@@ -30,12 +30,28 @@ export default function Contact() {
             {local}
             <wbr />@{domain}
           </a>
-          <p className="pg-actions">
-            <a className="pg-btn pg-btn-light" href={`mailto:${EMAIL}`}>
+          {/* The two asks, made to be pressed: the email in signal orange with
+              the sun's warmth behind it (its envelope opens on hover), the
+              resume in cream (its page lifts). */}
+          <p className="pg-actions ct-asks">
+            <a className="ct-ask ct-ask-mail" href={`mailto:${EMAIL}`}>
+              <svg viewBox="0 0 28 22" aria-hidden="true">
+                <rect x="1.5" y="3.5" width="25" height="17" rx="2.5" fill="#fff7ee" stroke="currentColor" strokeWidth="2" />
+                <path d="M3 18.5 L11.5 11 M25 18.5 L16.5 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                <path className="ct-flap" d="M2.5 5 L14 13.2 L25.5 5" fill="#fff7ee" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+              </svg>
               Email me
             </a>
-            <a className="pg-btn pg-btn-ghost" href={RESUME} target="_blank" rel="noreferrer">
-              Résumé
+            <a className="ct-ask ct-ask-cv" href={RESUME} target="_blank" rel="noreferrer">
+              <svg viewBox="0 0 22 26" aria-hidden="true">
+                <path className="ct-page" d="M3 1.5 H14 L19.5 7 V24.5 H3 Z" fill="#fff" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M14 1.5 V7 H19.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M6.5 12 H15.5 M6.5 15.5 H15.5 M6.5 19 H12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              Resume
+              <span className="ct-go" aria-hidden="true">
+                ↗
+              </span>
             </a>
           </p>
         </div>
@@ -46,10 +62,8 @@ export default function Contact() {
               {/* His card, held up beside his head (shown once he's here). */}
               <div className="ct-card" data-held>
                 <p className="ct-name">
-                  <svg className="ct-mark" viewBox="0 0 64 64" aria-hidden="true">
-                    <circle cx="32" cy="32" r="14" fill="none" stroke="#FF4F00" strokeWidth="4.5" />
-                    <path d="M32 8v48M8 32h48" stroke="#FF4F00" strokeWidth="4.5" strokeLinecap="square" />
-                  </svg>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="ct-mark" src="/icon.svg" alt="" width={22} height={22} />
                   {NAME}
                 </p>
                 <p className="ct-role">Software engineer · open to internships</p>

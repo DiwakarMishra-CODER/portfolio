@@ -1,28 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toggleXRay, useXRayOn } from "@/components/xray/XRay";
 
 export const NAV_LINKS = [
   { label: "Work", href: "#work" },
   { label: "About", href: "#about", wide: true },
   { label: "Contact", href: "#contact" },
 ];
-
-export function XRaySwitch() {
-  const on = useXRayOn();
-  return (
-    <button
-      type="button"
-      onClick={() => toggleXRay()}
-      aria-pressed={on}
-      title="X-ray: show how this page is built (key X)"
-      className={`type-label inline-flex items-center gap-1.5 border px-2 py-1 transition-colors max-[700px]:hidden ${on ? "border-signal bg-signal text-white" : "border-ink text-ink hover:border-signal hover:text-signal-ink"}`}
-    >
-      <span aria-hidden="true">⌖</span> X-ray
-    </button>
-  );
-}
 
 /**
  * The hero's own top line, pinned once the hero has scrolled away (while it's
@@ -65,11 +49,8 @@ export default function SiteNav() {
           ))}
           <li>
             <a href="/Diwakar-Mishra-Resume.pdf" target="_blank" rel="noreferrer" className="hover:text-signal-ink">
-              Résumé ↗
+              Resume ↗
             </a>
-          </li>
-          <li>
-            <XRaySwitch />
           </li>
         </ul>
       </nav>

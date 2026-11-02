@@ -60,7 +60,7 @@ export function createDirector() {
       return draw();
     },
     /** True the first time ever for this hint; marks it shown. */
-    firstTime(hint: "poke" | "lift") {
+    firstTime(hint: "poke" | "lift" | "voice") {
       const key = `host.hint.${hint}`;
       if (remembered(key)) return false;
       remember(key);

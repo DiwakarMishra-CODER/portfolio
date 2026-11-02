@@ -109,7 +109,7 @@ const SCENES = {
     };
   },
   // A film's page, then (a cut, like an edit) its "Films like it": if you
-  // loved Parasite, then see Get Out; the next pair after it.
+  // loved Parasite, then see Get Out; then the next pair.
   async arthouse(page) {
     await page.goto("https://arthouse-atlas.vercel.app/movie/6953c208df81e631d5708e82", { waitUntil: "networkidle" });
     await sleep(2500);
@@ -123,11 +123,11 @@ const SCENES = {
         if (h) scrollTo({ top: h.getBoundingClientRect().top + scrollY - 70, behavior: "instant" });
       });
       await sleep(1900);
+      // One "next": Get Out, then Everything Everywhere All at Once, where it
+      // rests (the owner's call: not the third pair, The Wolf of Wall Street).
       const next = page.getByRole("button", { name: /next/i }).first();
       await clickOn(page, next, 900);
-      await sleep(2200);
-      await clickOn(page, next, 500);
-      await sleep(2300);
+      await sleep(2800);
     };
   },
 };

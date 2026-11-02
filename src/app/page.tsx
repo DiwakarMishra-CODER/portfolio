@@ -7,7 +7,6 @@ import LightsUp from "@/components/arthouse/LightsUp";
 import About from "@/components/home/About";
 import Contact from "@/components/home/Contact";
 import SiteNav from "@/components/nav/SiteNav";
-import XRay from "@/components/xray/XRay";
 import HostLayer from "@/components/host/HostLayer";
 import Ground from "@/components/ground/Ground";
 import "@/components/home/home.css";
@@ -31,7 +30,6 @@ export default function Home() {
       </main>
       <Contact />
       <HostLayer />
-      <XRay />
     </>
   );
 }

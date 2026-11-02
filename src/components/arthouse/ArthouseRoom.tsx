@@ -39,6 +39,7 @@ export default function ArthouseRoom({ n }: { n: number }) {
           <p className="room-spec">
             {fmt(A.films)} films, ranked by {A.lists} critics’ lists · {p.parts.find((x) => x.k === "Built with")?.v}
           </p>
+          <p className="room-own">Designed, built and shipped by me.</p>
           <p className="room-actions">
             <a href={p.live} target="_blank" rel="noreferrer">
               Open Arthouse Atlas ↗
@@ -49,9 +50,9 @@ export default function ArthouseRoom({ n }: { n: number }) {
           </p>
           <ProductShot id="arthouse" url={p.live} {...p.footage} />
           <p className="ah-proof">
-            For <b>2 in 3</b> people, a film they went on to love was in its 10 picks.
+            For <b>2 in 3</b> people, its 10 picks included a film they went on to love.
             <span>
-              Tested on {fmt(A.testPeople)} people it never saw ({A.laterLove}%, against {A.oldLaterLove}% for the old engine).
+              Tested on {fmt(A.testPeople)} people it never saw ({A.laterLove}%, against {A.oldLaterLove}% for the site’s first engine).
             </span>
           </p>
           <div className="ah-said">
@@ -69,7 +70,7 @@ export default function ArthouseRoom({ n }: { n: number }) {
           </div>
 
           <div data-host-cue="arthouse:credits">
-            <Credits live={p.live} source={p.source} builtWith={p.parts.find((x) => x.k === "Built with")?.v ?? ""} />
+            <Credits live={p.live} source={p.source} />
           </div>
         </div>
 

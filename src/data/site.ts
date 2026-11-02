@@ -26,10 +26,10 @@ export const STATS = [
     label: "LeetCode",
     value: String(leetcode.rating),
     unit: leetcode.rating >= 1850 ? "Knight" : "",
-    note: `Contest rating · Knight is 1850+ · ${leetcode.solved.All} solved`,
+    note: `Contest rating · Knight badge at 1850+ · ${leetcode.solved.All} solved`,
     href: LEETCODE,
   },
-  { label: "Flipkart GRiD 8.0", value: "Semi-finalist", unit: "", note: "National contest", href: null },
+  { label: "Flipkart GRiD 8.0", value: "Semi-finalist", unit: "", note: "Out of 170,000+ registrations", href: null },
 ] as const;
 
 export const TOOLKIT = ["C++", "TypeScript", "JavaScript", "SQL", "React", "Next.js", "Node.js", "Express", "MongoDB", "PostgreSQL", "Tailwind CSS", "Canvas", "D3", "Git"];
@@ -108,7 +108,7 @@ export const PROJECTS: Project[] = [
       { value: fmt(A.films), label: "films" },
       { value: fmt(A.directors), label: "directors" },
       { value: fmt(A.lists), label: "critics' and festival lists" },
-      { value: `${A.hitRate}%`, label: `found their next film in its top 10 (old engine: ${A.oldHitRate}%)` },
+      { value: `${A.hitRate}%`, label: `found their next film in its top 10 (the site's first engine: ${A.oldHitRate}%)` },
     ],
     parts: [
       { k: "Built with", v: "React 19, Vite, Node and Express, MongoDB, D3" },

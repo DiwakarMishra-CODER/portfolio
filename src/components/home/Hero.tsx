@@ -75,7 +75,7 @@ export default function Hero() {
               See my work
             </a>
             <a className="pg-btn" href={RESUME} target="_blank" rel="noreferrer">
-              Résumé
+              Resume
             </a>
           </p>
           {/* Proof, not another button: the two buttons above are the only asks. */}

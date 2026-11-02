@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInViewOnce } from "@/lib/useInViewOnce";
+import { STARWEAVE as S, fmt } from "@/data/figures";
 import {
   TIER_LABEL,
   bestSourcedPath,
@@ -367,13 +368,13 @@ export default function StarweaveMachine() {
   return (
     <div ref={rootRef} className="grid grid-cols-12 gap-x-[clamp(12px,1.7vw,24px)]">
       <div className="relative col-span-12 border-hairline p-[clamp(10px,1.4vw,20px)] min-[1000px]:col-span-8 min-[1000px]:border-r">
-        <div ref={wrapRef} className="relative" data-part="Map · canvas, 945 links">
+        <div ref={wrapRef} className="relative" data-part={`Map · canvas, ${fmt(S.links)} links`}>
           {data ? (
             <canvas
               ref={canvasRef}
               className="block w-full cursor-crosshair touch-manipulation"
               role="img"
-              aria-label="Starweave's map of 296 artists and 945 influence links, with the route drawn between the two artists picked."
+              aria-label={`Starweave's map of ${fmt(S.artists)} artists and ${fmt(S.links)} influence links, with the route drawn between the two artists picked.`}
               onPointerMove={(e) => setHover(nearest(e))}
               onPointerLeave={() => setHover(null)}
               onClick={(e) => {

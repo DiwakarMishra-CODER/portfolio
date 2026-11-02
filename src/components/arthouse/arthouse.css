@@ -460,6 +460,15 @@
   font-size: clamp(18px, 1.6vw, 21px);
   line-height: 1.35;
 }
+/* The technical name, small, under the plain line (for the engineers). */
+.ah-roles dd small {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-ah-label);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--white-2);
+}
 .ah-board {
   margin-top: 48px;
   padding: 26px 0 8px;

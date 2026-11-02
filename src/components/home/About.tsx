@@ -21,10 +21,10 @@ export default function About() {
           </div>
           <div>
             <HostSaid spot="about" />
-            <h2 id="about-title">I pick problems that need more than a database.</h2>
+            <h2 id="about-title">I build the logic behind the screen, not just the screen.</h2>
             <p className="pg-about-text">
-              {STUDY} Both projects come down to a scoring system: how much a source is worth, how much a film you loved is worth. Both show
-              their working.
+              {STUDY} In both projects the hard part is a ranking. Starweave weighs how strong each piece of proof is. Arthouse Atlas learned
+              from 32 million ratings what to show you next.
             </p>
             <h3 className="pg-small-head">Works in</h3>
             <ul className="pg-toolkit">
