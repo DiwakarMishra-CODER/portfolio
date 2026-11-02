@@ -46,6 +46,14 @@ const AWAY_MS = 30_000; // away from the tab this long, and he notices you're ba
 const FIDGETS: ClipName[] = ["glasses", "watch", "stretch", "look", "shift"];
 const WALK_SPEED = 240; // px/s, back to his spot after a toss
 const RUN_SPEED = 600; // px/s, when he was thrown far
+// The cinema (Lights down): keep these in step with lightsdown.css.
+const WALK_START = 0.45; // he sets off when the cinema's top is this far down the screen (Starweave's "How it works" all but gone)
+const WALK_CYCLES = 3; // walk cycles (two steps each) from Starweave to the projector
+const MOUNT_AT = 300; // ms into the mount: the reel leaves his hand and floats up onto the projector as he reaches
+const MOUNT_MS = 1250; // the mount's length: then he cranks
+const LAMP_AT = 0.12; // the lamp catches (held-stage fraction; CSS .ld-light from 12%)
+const FILM_FROM = 0.56; // into the film from here to the stage's end
+const LEAP_AT = 0.16; // of that: the wind-up, then the leap
 const RUN_FROM = 320; // px from home: farther than this, he runs, then walks the last bit
 const WALK_LAST = 110;
 const STORY_MS = 3800; // in a room, his story line is read before the room's first cue
@@ -139,13 +147,11 @@ export default function HostLayer() {
       show(b, line);
       clearTimeout(sayTimer);
       const lane = b.on === "is-on";
-      if (ms === 0 && lane) return void kept.set(spot, line);
-      const at = spot;
-      sayTimer = window.setTimeout(() => {
-        const back = lane && kept.get(at);
-        if (back && at === spot) show(b, back);
-        else b.el.classList.remove(b.on);
-      }, ms || 6000);
+      if (ms === 0 && lane) kept.set(spot, line);
+      // Every line goes after a read (a bubble that never goes is wallpaper,
+      // and people learn to look past him). Longer lines stay longer.
+      const read = Math.min(9000, 3200 + line.split(" ").length * 280);
+      sayTimer = window.setTimeout(() => b.el.classList.remove(b.on), ms || read);
     };
 
     // A greeting: added as the bubble's first line, above his story line, and
@@ -191,7 +197,7 @@ export default function HostLayer() {
       engine?.stopSmall(0.3);
     };
     const idle = () => {
-      if (!engine || phase !== "home" || asleep || !onScreen || document.hidden || engine.isOn("hold") || engine.isOn("crank")) return;
+      if (!engine || phase !== "home" || asleep || !onScreen || document.hidden || engine.isOn("hold") || engine.isOn("crank") || engine.sitting()) return;
       const now = performance.now();
       if (now - lastTouch > SLEEP_AFTER_MS) {
         asleep = true;
@@ -215,7 +221,8 @@ export default function HostLayer() {
     const rehold = (ms = 0) =>
       after(ms, () => {
         if (!engine || phase !== "home" || asleep) return;
-        if (proofShown()) engine.play("hold");
+        // (In his cinema seat the ticket just stays in the column.)
+        if (proofShown() && !engine.sitting()) engine.play("hold");
         else if (engine.isOn("hold")) engine.stopSmall(0.3);
       });
 
@@ -235,6 +242,12 @@ export default function HostLayer() {
         engine?.play("surprised");
         sound.poke();
         say(QUIP.wake);
+        return;
+      }
+      // Watching the film: a nod, nothing louder.
+      if (engine?.sitting()) {
+        engine.play("nod");
+        sound.poke();
         return;
       }
       const r = director.poke();
@@ -335,14 +348,19 @@ export default function HostLayer() {
       engine?.lean(0);
       engine?.play("idle");
       engine?.setFast(false);
+      engine?.seat(spot === ahLane());
       rehold(500);
+      watchFilm();
     };
     const tick = (now: number) => {
       const dt = Math.min(0.033, last ? (now - last) / 1000 : 0.016);
       last = now;
       if (phase === "held" && samples.length) {
         const p = samples[samples.length - 1];
-        follow(body, p.x - grabAt.x, p.y - grabAt.y, dt);
+        // He stays on screen while held: past the edge he waits at it (the
+        // throw still takes the pointer's own speed, so he bumps the side).
+        const k = bounds();
+        follow(body, Math.max(k.left, Math.min(k.right, p.x - grabAt.x)), Math.max(k.top, p.y - grabAt.y), dt);
         engine?.lean(-body.vx / 3000);
       } else if (phase === "air") {
         engine?.lean(-body.vx / 4000);
@@ -404,6 +422,10 @@ export default function HostLayer() {
       if (!press || !engine) return;
       touch();
       if (asleep) wake();
+      // (Out of his seat; the seat is drawn with him, so it waits off screen
+      // until he's back at his spot.)
+      if (engine.sitting()) leaveSeat(true);
+      engine.seat(false);
       phase = "held";
       grabAt = { x: press.x - body.x, y: press.y - body.y };
       samples = [{ t: press.t, x: press.x, y: press.y }];
@@ -434,13 +456,18 @@ export default function HostLayer() {
       if (press.touch && moved > 10) clearTimeout(press.holdTimer);
       else if (!press.touch && moved > 4 && phase !== "air") lift();
     };
-    const onUp = (e: PointerEvent) => {
-      if (!press || e.pointerId !== press.id) return;
+    // Let go. `at` is where the pointer came up; without it (the release
+    // happened where we couldn't see it: outside the window, focus lost) he's
+    // dropped with the speed of the last move, or none if that was a while ago.
+    const letGo = (at?: { x: number; y: number }) => {
+      if (!press) return;
       clearTimeout(press.holdTimer);
       press = null;
       if (phase !== "held") return;
-      samples.push({ t: performance.now(), x: e.clientX, y: e.clientY });
-      Object.assign(body, release(samples));
+      const now = performance.now();
+      if (at) samples.push({ t: now, ...at });
+      const lastMove = samples[samples.length - 1]?.t ?? now;
+      Object.assign(body, now - lastMove > 150 ? { vx: 0, vy: 0 } : release(samples));
       phase = "air";
       bumped = false;
       tosses.push(performance.now());
@@ -452,10 +479,26 @@ export default function HostLayer() {
       justDragged = true;
       after(0, () => (justDragged = false));
     };
+    const onUp = (e: PointerEvent) => {
+      if (press && e.pointerId === press.id) letGo({ x: e.clientX, y: e.clientY });
+    };
+    // A release the page never saw (let go outside the window, or the browser
+    // took the pointer away): drop him instead of holding him forever. After
+    // a normal pointerup, press is already null and these do nothing.
+    const onLost = (e: PointerEvent) => {
+      if (press && e.pointerId === press.id) letGo();
+    };
+    const onBlur = () => letGo();
+    const onAnyMove = (e: PointerEvent) => {
+      if (press && e.pointerId === press.id && e.pointerType === "mouse" && e.buttons === 0) letGo();
+    };
     hit.addEventListener("pointerdown", onDown);
     hit.addEventListener("pointermove", onMove);
     hit.addEventListener("pointerup", onUp);
     hit.addEventListener("pointercancel", onUp);
+    hit.addEventListener("lostpointercapture", onLost);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("pointermove", onAnyMove);
 
     // ── Walking the page with you ─────────────────────────────────────────
     // The stop whose section is across the reading line (45% down the
@@ -464,15 +507,16 @@ export default function HostLayer() {
     const current = () => {
       const line = window.innerHeight * 0.45;
       return stops().find((s) => {
-        const r = (s.closest("section, header") ?? s).getBoundingClientRect();
+        const r = (s.closest("section, header, footer") ?? s).getBoundingClientRect();
         return r.top <= line && r.bottom >= line;
       });
     };
     let arrivedAt = 0;
     const told = new Set<string>(); // rooms whose story he has said this visit
-    const moveTo = (next: HTMLElement, { flown = false } = {}) => {
+    const moveTo = (next: HTMLElement, { flown = false, land = true } = {}) => {
       if (!engine || !canvas) return;
       const from = spot;
+      if (next !== from && from === ahLane()) leaveSeat(true);
       arrivedAt = performance.now();
       engine.outline(next.closest("[data-host-dark]") ? PALE : INK, next.closest("[data-host-dark]") ? 0.011 : undefined);
       if (asleep) wake();
@@ -484,14 +528,18 @@ export default function HostLayer() {
       next.append(canvas, zzz!, hit);
       // In the cinema he stands at the projector; anywhere else it's put away.
       engine.projector(!!next.closest(".ld"));
+      // In Arthouse's column his cinema seat stands behind him.
+      engine.seat(next === ahLane());
       next.classList.add("is-live");
       engine.refit();
       io?.disconnect();
       io?.observe(next);
       engine.setActive(true);
       // He drops in from above and lands (or, arriving by air, just lands).
-      if (flown) engine.play("land");
-      else if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (flown) {
+        // (Walking up to the projector he just stops; no flinch.)
+        if (land) engine.play("land");
+      } else if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
         engine.play("fall");
         canvas.animate([{ translate: "-50% -160px", opacity: 0 }, { translate: "-50% 0", opacity: 1 }], { duration: 380, easing: "cubic-bezier(0.55, 0, 1, 0.45)" });
         after(380, () => engine?.play("land"));
@@ -622,13 +670,17 @@ export default function HostLayer() {
       return { x: r.left + r.width / 2, y: Math.max(r.bottom + p * D, r.height * 0.15), h: r.height };
     };
 
-    // Walk-in: from the end of Starweave's room (its bottom 95% down) to the
-    // cinema's stage being held (its top at the top of the screen).
-    const walkD = () => 0.95 * innerHeight;
+    // Walk-in: once Starweave's room has all but gone (the cinema's top 45%
+    // down the screen) to the cinema's stage being held (its top at the top).
+    // His steps are the scroll's: the walk cycle is scrubbed by p, so his feet
+    // never slide, and he stands mid-stride when you stop.
+    // (No later than current()'s 45% line: past it he'd already be placed at
+    // the projector without walking.)
+    const walkD = () => WALK_START * innerHeight;
     const walkIn: Trip = {
       from: swStop,
       to: () => ldSpot ?? undefined,
-      p: () => (0.95 * innerHeight - swRoom!.getBoundingClientRect().bottom) / walkD(),
+      p: () => (walkD() - ld!.getBoundingClientRect().top) / walkD(),
       at: (p) => {
         const a = laneFeet(swStop()!, p, walkD());
         const b = ldFeet();
@@ -638,73 +690,287 @@ export default function HostLayer() {
         return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), k: lerp(a.h, b.h, t) / base };
       },
       box: () => (ldSpot!.offsetHeight > swStop()!.offsetHeight ? ldSpot! : swStop()!),
-      start: () => {
-        // Down the aisle toward you, the film under his arm, in a follow-spot.
+      start: (p) => {
+        // Down the aisle toward you, the film in his hand, in a follow-spot.
         propStill(false);
         engine!.carry(true);
-        engine!.play("walk", { loop: true });
+        engine!.scrub("carry", 1);
+        engine!.scrub("walk", p * WALK_CYCLES);
+        lastStepAt = Math.floor(p * WALK_CYCLES * 2);
         document.body.append(followSpot);
       },
-      frame: (_p, pt) => {
+      frame: (p, pt) => {
         const h = flightBox.offsetHeight * pt.k;
         followSpot.style.transform = `translate(${(pt.x - 260).toFixed(0)}px, ${(pt.y - h * 0.62 - 260).toFixed(0)}px) scale(${(0.55 + 0.5 * pt.k).toFixed(3)})`;
+        engine!.scrub("walk", p * WALK_CYCLES);
+        // A footstep each time a foot comes down (two a cycle).
+        const step = Math.floor(p * WALK_CYCLES * 2);
+        if (step !== lastStepAt) {
+          lastStepAt = step;
+          sound.step();
+        }
       },
       arrive: (end) => {
         followSpot.remove();
-        engine!.carry(false);
+        engine!.play("idle", { fade: 0.3 });
         if (end === "to") {
-          // He slots the reel on and the projector is his.
-          propStill(true);
-          moveTo(ldSpot!, { flown: true });
-          engine!.loadReel(true);
-          after(120, inCinema);
-        } else moveTo(swStop()!, { flown: true });
+          // At the projector: he puts the reel on, then takes the crank.
+          moveTo(ldSpot!, { flown: true, land: false });
+          mountReel();
+        } else {
+          engine!.scrub("carry", 0);
+          engine!.carry(false);
+          moveTo(swStop()!, { flown: true });
+        }
       },
     };
+    let lastStepAt = 0;
+    // Putting the film on: he looks at the projector, lifts the reel onto its
+    // front arm (it slides off his hand into place), presses it home, and his
+    // hand comes down onto the crank. Only then does he crank.
+    let mounting = false;
+    const mountReel = () => {
+      if (!engine) return;
+      mounting = true;
+      cranking = false;
+      engine.loadReel(false); // the front arm is empty until he puts his reel on
+      engine.play("mount", { fade: 0 });
+      engine.scrub("carry", 0);
+      after(MOUNT_AT, () => {
+        if (spot !== ldSpot) return;
+        engine?.mountReel();
+        propStill(true);
+        sound.poke();
+      });
+      after(MOUNT_MS, () => {
+        mounting = false;
+        if (spot === ldSpot && phase === "home") inCinema();
+      });
+    };
 
-    // Into the film: over the last 30% of the cinema's held stage.
-    let lensAt: { x: number; y: number } | null = null; // stage-relative, cached while he's at it
+    // Into the film: over the last 44% of the cinema's held stage (the title
+    // holds before it; lightsdown.css has the light/title ranges). He winds up,
+    // leaps high, turns over into a dive (hands first along the arc) and goes
+    // into the middle of the screen, which takes him in a flash and a ripple.
+    // All scrubbed by the scroll.
     const filmP = () => {
       const r = ld!.getBoundingClientRect();
       const q = -r.top / Math.max(1, r.height - innerHeight);
-      return (q - 0.7) / 0.3;
+      return (q - FILM_FROM) / (1 - FILM_FROM);
     };
+    /** The dive's arc, for his middle, at u (0 → 1 from takeoff to the screen). */
+    const diveArc = (u: number) => {
+      const st = ldStage!.getBoundingClientRect();
+      const f = ldFeet();
+      const sc = ldScreen!.getBoundingClientRect();
+      const A = { x: f.x, y: f.y + st.top - f.h * 0.5 };
+      const B = { x: sc.left + sc.width / 2, y: sc.top + sc.height / 2 };
+      // Up and over: high above where he stood, across, then a near-vertical
+      // plunge into the screen (the last control point sits just above it).
+      // Kept clear of the nav at the top.
+      const P1 = { x: A.x - (A.x - B.x) * 0.25, y: A.y - f.h * 1.4 };
+      const P2 = { x: B.x + (A.x - B.x) * 0.08, y: Math.max(st.top + 130, sc.top - f.h * 0.7) };
+      const v = 1 - u;
+      const at = (a: number, b: number, c: number, d: number) => v * v * v * a + 3 * v * v * u * b + 3 * v * u * u * c + u * u * u * d;
+      const dt = (a: number, b: number, c: number, d: number) => 3 * v * v * (b - a) + 6 * v * u * (c - b) + 3 * u * u * (d - c);
+      return { x: at(A.x, P1.x, P2.x, B.x), y: at(A.y, P1.y, P2.y, B.y), vx: dt(A.x, P1.x, P2.x, B.x), vy: dt(A.y, P1.y, P2.y, B.y), A };
+    };
+    const diveScale = (u: number) => (u < 0.8 ? lerp(1, 0.55, ease(u / 0.8)) : lerp(0.55, 0.04, (u - 0.8) / 0.2));
     const intoFilm: Trip = {
       from: () => ldSpot ?? undefined,
       to: ahStop,
       p: filmP,
       at: (p) => {
-        const st = ldStage!.getBoundingClientRect();
-        const f = ldFeet();
-        const sc = ldScreen!.getBoundingClientRect();
-        const L = lensAt ?? lensPoint();
-        // Up to the lens, then along the beam into the middle of the screen.
-        const A = { x: f.x, y: f.y + st.top };
-        const C = { x: L.x + st.left, y: L.y + st.top - f.h * 0.2 };
-        const B = { x: sc.left + sc.width / 2, y: sc.top + sc.height * 0.62 };
-        const u = 1 - p;
-        return { x: u * u * A.x + 2 * u * p * C.x + p * p * B.x, y: u * u * A.y + 2 * u * p * C.y + p * p * B.y, k: lerp(1, 0.05, ease(p)) };
+        const box = flightBox.offsetHeight || ldSpot!.offsetHeight;
+        if (p < LEAP_AT) {
+          // The wind-up, where he stands.
+          const f = ldFeet();
+          return { x: f.x, y: f.y + ldStage!.getBoundingClientRect().top, k: 1 };
+        }
+        const u = (p - LEAP_AT) / (1 - LEAP_AT);
+        const c = diveArc(u);
+        const k = diveScale(u);
+        // The box hangs from his feet; his middle sits half a box above them.
+        return { x: c.x, y: c.y + box * 0.5 * k, k };
       },
       box: () => ldSpot!,
       start: () => {
-        // Swept up by the light.
         propStill(true);
         engine!.play("idle");
-        engine!.play("soar");
+        engine!.face(-1);
       },
       frame: (p) => {
-        canvas!.style.opacity = String(p > 0.8 ? Math.max(0, 1 - (p - 0.8) / 0.2) : 1);
+        engine!.lean(0);
+        const u = p < LEAP_AT ? 0 : (p - LEAP_AT) / (1 - LEAP_AT);
+        engine!.scrub("windup", p < LEAP_AT ? ease(p / LEAP_AT) : Math.max(0, 1 - u / 0.1));
+        engine!.scrub("dive", Math.min(1, u / 0.22));
+        // Turned so his hands lead along the arc (counter-clockwise on screen).
+        const c = diveArc(u);
+        const along = Math.atan2(-c.vx, -c.vy);
+        engine!.tilt(u <= 0 ? 0 : along * ease(Math.min(1, u / 0.35)));
+        canvas!.style.opacity = String(u > 0.9 ? Math.max(0, 1 - (u - 0.9) / 0.1) : 1);
       },
       arrive: (end) => {
         canvas!.style.opacity = "";
+        offDive();
         if (end === "from") {
-          moveTo(ldSpot!, { flown: true });
+          moveTo(ldSpot!, { flown: true, land: false });
           engine!.loadReel(true);
           after(120, inCinema);
         }
       },
     };
-    const trips = [nightfall, walkIn, intoFilm];
+    const offDive = () => {
+      engine?.tilt(0);
+      engine?.scrub("windup", 0);
+      engine?.scrub("dive", 0);
+      engine?.face(0);
+    };
+    // Walk-out: the house lights come up after Arthouse (LightsUp). From his
+    // seat's column (once the room's bottom is 45% up the screen) he walks
+    // down to the EXIT door, turning his back to us, reaches it as it swings
+    // open (lightsup.css: open over 30–46% of its held stage), goes into the
+    // daylight and is gone while it floods the screen; he walks into About as
+    // its page reaches the reading line. All scrubbed, so it runs backward too.
+    const lu = document.querySelector<HTMLElement>("[data-lightsup]");
+    const luStage = lu?.querySelector<HTMLElement>(".lu-stage");
+    const luDoor = lu?.querySelector<HTMLElement>("[data-door]");
+    const aboutStop = () => stops().find((s) => s.closest("#about"));
+    const outFrom = () => stops().find((s) => s === ahLane());
+    // p over the band: 0 with its top 45% down, 1 with its bottom there.
+    const outP = () => (0.45 * innerHeight - lu!.getBoundingClientRect().top) / lu!.offsetHeight;
+    // p when the held stage is at q (its scrolled fraction).
+    const outAt = (q: number) => (0.45 * innerHeight + q * (lu!.offsetHeight - luStage!.offsetHeight)) / lu!.offsetHeight;
+    const OUT_REACH = 0.47; // q: at the door as it finishes opening
+    const OUT_GONE = 0.55; // q: through it, into the light
+    const OUT_CYCLES = 3.5;
+    let outStep = 0;
+    const walkOut: Trip = {
+      from: outFrom,
+      to: aboutStop,
+      p: outP,
+      at: (p) => {
+        const base = walkOut.box().offsetHeight;
+        // Where he stood when he set off: his column scrolls away with the
+        // room, he doesn't.
+        const r = outFrom()!.getBoundingClientRect();
+        const a = { x: r.left + r.width / 2, y: r.bottom + 0.45 * innerHeight - lu!.getBoundingClientRect().top, h: r.height };
+        const d = luDoor!.getBoundingClientRect();
+        // His feet on the threshold; he's smaller there (it's across the room).
+        const b = { x: d.left + d.width / 2, y: Math.min(d.bottom, innerHeight * 0.95), h: d.height * 0.66 };
+        const pr = outAt(OUT_REACH);
+        if (p <= pr) {
+          // Down onto the floor in front of the door (near, so lower on the
+          // screen), then up the aisle into it: never across the wall.
+          const t = ease(p / pr);
+          const c = { x: lerp(a.x, b.x, 0.8), y: innerHeight * 1.22 };
+          const u = 1 - t;
+          return { x: u * u * a.x + 2 * u * t * c.x + t * t * b.x, y: u * u * a.y + 2 * u * t * c.y + t * t * b.y, k: lerp(a.h, b.h, t) / base };
+        }
+        // Into the doorway, a little further in and smaller.
+        const u = Math.min(1, (p - pr) / (outAt(OUT_GONE) - pr));
+        return { x: b.x, y: b.y - u * d.height * 0.06, k: (b.h * (1 - 0.2 * u)) / base };
+      },
+      box: () => outFrom()!,
+      start: (p) => {
+        engine!.play("idle");
+        outStep = Math.floor(walkOutPhase(p) * 2);
+        engine!.scrub("walk", walkOutPhase(p));
+      },
+      frame: (p) => {
+        const pr = outAt(OUT_REACH);
+        const pg = outAt(OUT_GONE);
+        const ph = walkOutPhase(p);
+        engine!.scrub("walk", ph);
+        const step = Math.floor(ph * 2);
+        if (step !== outStep && p < pg) {
+          outStep = step;
+          sound.step();
+        }
+        // Toward the door (3/4 on to us), then his back to us as he nears it.
+        const dir = Math.sign(luDoor!.getBoundingClientRect().left - box(outFrom()!).x) || -1;
+        engine!.yaw(p < pr * 0.55 ? dir * 1.1 : dir * 2.6);
+        canvas!.style.opacity = p <= pr ? "" : String(Math.max(0, 1 - (p - pr) / (pg - pr)));
+      },
+      arrive: (end) => {
+        canvas!.style.opacity = "";
+        engine!.yaw(null);
+        engine!.play("idle", { fade: 0.3 });
+        if (end === "from") return moveTo(outFrom()!, { flown: true, land: false });
+        // Out of the light and into About: he walks in from the side.
+        moveTo(aboutStop()!, { flown: true, land: false });
+        if (reduced()) return;
+        engine!.face(1);
+        engine!.play("walk");
+        canvas!.animate([{ translate: "calc(-50% - 90px) 0", opacity: 0 }, { translate: "-50% 0", opacity: 1 }], { duration: 750, easing: "cubic-bezier(0.2, 0, 0, 1)" });
+        after(750, () => {
+          if (spot !== aboutStop() || phase !== "home") return;
+          engine?.face(0);
+          engine?.play("idle", { fade: 0.3 });
+        });
+      },
+    };
+    // Down to the end of the tour: from About's column into Contact's as
+    // Contact comes up (its top from 95% to 45% of the screen, where it takes
+    // him anyway), steps scrubbed by the scroll. There he holds up his card.
+    const ctEl = document.querySelector<HTMLElement>("#contact");
+    const ctStop = () => stops().find((s) => s.closest("#contact"));
+    const DOWN_CYCLES = 1.5;
+    let downStep = 0;
+    const walkDown: Trip = {
+      from: aboutStop,
+      to: ctStop,
+      p: () => (0.95 * innerHeight - ctEl!.getBoundingClientRect().top) / (0.5 * innerHeight),
+      at: (p) => {
+        const a = box(aboutStop()!);
+        const b = box(ctStop()!);
+        const t = ease(p);
+        return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), k: lerp(a.h, b.h, t) / walkDown.box().offsetHeight };
+      },
+      box: () => (ctStop()!.offsetHeight > aboutStop()!.offsetHeight ? ctStop()! : aboutStop()!),
+      start: (p) => {
+        engine!.play("idle");
+        downStep = Math.floor(p * DOWN_CYCLES * 2);
+        engine!.scrub("walk", p * DOWN_CYCLES);
+      },
+      frame: (p) => {
+        engine!.scrub("walk", p * DOWN_CYCLES);
+        const step = Math.floor(p * DOWN_CYCLES * 2);
+        if (step !== downStep) {
+          downStep = step;
+          sound.step();
+        }
+      },
+      arrive: (end) => {
+        engine!.play("idle", { fade: 0.3 });
+        moveTo(end === "from" ? aboutStop()! : ctStop()!, { flown: true, land: false });
+        // (Already at the bottom when he gets here: no scroll is coming to wave on.)
+        if (end === "to") after(700, goodbye);
+      },
+    };
+    // At the very bottom he waves you off (once a visit); still there a while
+    // later, he points at the email.
+    let wavedBye = false;
+    const atBottom = () => innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+    const goodbye = () => {
+      if (wavedBye || !engine || phase !== "home" || spot !== ctStop() || !atBottom()) return;
+      wavedBye = true;
+      after(400, () => {
+        if (spot !== ctStop() || phase !== "home") return;
+        if (asleep) wake();
+        engine?.play("wave");
+        say(QUIP.bye, 0);
+        rehold(2400);
+        after(20000, () => {
+          if (spot !== ctStop() || phase !== "home" || !atBottom()) return;
+          say(QUIP.still, 0);
+          engine?.play("point");
+          rehold(1800);
+        });
+      });
+    };
+    const walkOutPhase = (p: number) => (Math.min(p, outAt(OUT_GONE)) / outAt(OUT_GONE)) * OUT_CYCLES;
+    const trips = [nightfall, walkIn, intoFilm, ...(lu && luStage && luDoor ? [walkOut] : []), ...(ctEl ? [walkDown] : [])];
     const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
     const ready = (t: Trip) => !!(t.from() && t.to());
 
@@ -718,6 +984,8 @@ export default function HostLayer() {
       gazing = false;
       cranking = false;
       engine.projector(false); // a still projector stays behind (.ld-prop)
+      leaveSeat(true);
+      engine.seat(false);
       spot.classList.remove("is-live");
       homeSpot.classList.add("is-empty");
       const b = t.box();
@@ -767,10 +1035,20 @@ export default function HostLayer() {
     const enterFilm = () => {
       phase = "film";
       flightBox.style.visibility = "hidden";
-      ldScreen?.querySelector(".ld-flash")?.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 650, easing: "ease-out" });
+      ldScreen?.querySelector(".ld-flash")?.animate([{ opacity: 0.9 }, { opacity: 0 }], { duration: 700, easing: "ease-out" });
+      ldScreen?.querySelector(".ld-ripple")?.animate(
+        [
+          { scale: "0.2", opacity: 0.9 },
+          { scale: "14", opacity: 0 },
+        ],
+        { duration: 1000, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+      );
+      ldScreen?.animate([{ scale: "1" }, { scale: "1.03" }, { scale: "1" }], { duration: 480, easing: "cubic-bezier(0.2, 0, 0, 1)" });
+      sound.land(1100);
     };
     // Out of the film, into Arthouse's room: a flash where he stands.
     const leaveFilm = (to: HTMLElement) => {
+      offDive();
       phase = "home";
       trip = null;
       hit.style.visibility = "";
@@ -811,7 +1089,7 @@ export default function HostLayer() {
     const lensPoint = () => {
       const st = ldStage!.getBoundingClientRect();
       const live = engine?.lens();
-      if (live && spot === ldSpot && phase === "home") return (lensAt = { x: live.x - st.left, y: live.y - st.top });
+      if (live && spot === ldSpot && phase === "home") return { x: live.x - st.left, y: live.y - st.top };
       // The still: its lens tip sits at (14.5%, 39%) of the image.
       const r = (ldProp ?? ldSpot!).getBoundingClientRect();
       return { x: r.left + r.width * 0.145 - st.left, y: r.top + r.height * 0.39 - st.top };
@@ -834,12 +1112,84 @@ export default function HostLayer() {
       if (!engine || !ld) return;
       const r = ld.getBoundingClientRect();
       const p = Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - innerHeight)));
-      engine.reel(p * 36, p > 0.2);
-      const run = p > 0.04 && p < 0.97 && phase === "home";
-      if (run && !cranking) engine.play("crank", { loop: true });
+      engine.reel(p * 36, p > LAMP_AT);
+      const run = p > 0.01 && p < 0.97 && phase === "home" && !mounting;
+      if (run && !cranking) {
+        // Out of the mount's last pose (the same as the crank's first).
+        engine.stopSmall(0.15);
+        engine.play("crank", { loop: true, fade: 0.15 });
+      }
       if (!run && cranking) engine.stopSmall(0.3);
       cranking = run;
       aimBeam();
+    };
+
+    // ── Arthouse: he watches the film with you ───────────────────────────
+    // In Arthouse's column (wide screens) his cinema seat stands behind him.
+    // When the screen comes up he sits down with popcorn, eyes on it, and
+    // stays for the credits; when they finish he gets up, stretches and
+    // claps. Scroll back up and he just gets up.
+    const ahRoom = document.querySelector<HTMLElement>("#arthouse");
+    const ahLane = () => ahRoom?.querySelector<HTMLElement>('[data-host-lane] [data-host-stop]') ?? null;
+    let applauded = false;
+    let seatRun = 0; // a token: getting up again cancels a pending stretch/clap
+    const leaveSeat = (now = false) => {
+      if (!engine?.sitting()) return;
+      seatRun++;
+      engine.sit(false, now);
+      engine.gaze(null);
+    };
+    const watchFilm = () => {
+      if (!engine || !ahRoom || phase !== "home" || spot !== ahLane()) return;
+      const stage = ahRoom.querySelector<HTMLElement>(".ah-stage");
+      const screen = ahRoom.querySelector<HTMLElement>(".ah-screen");
+      if (!stage || !screen) return;
+      const over = ahRoom.getBoundingClientRect().bottom < innerHeight * 0.8;
+      const showing = stage.getBoundingClientRect().top < innerHeight * 0.55 && !over;
+      if (showing && !engine.sitting()) {
+        if (asleep) wake();
+        engine.stopSmall(0.25); // (lowers the ticket: it stays in the column)
+        engine.sit(true);
+        applauded = false;
+        seatRun++;
+      } else if (!showing && engine.sitting()) {
+        leaveSeat();
+        if (over && !applauded) {
+          // The credits are done: up, a stretch, applause.
+          applauded = true;
+          const run = seatRun;
+          after(650, () => run === seatRun && phase === "home" && engine?.play("stretch"));
+          after(2700, () => run === seatRun && phase === "home" && engine?.play("clap"));
+          after(4400, () => run === seatRun && rehold());
+        } else rehold(700);
+      }
+      if (engine.sitting()) {
+        const r = screen.getBoundingClientRect();
+        engine.gaze({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+      }
+    };
+
+    // Starweave's cut: as the recorded site's screen swings open (ProductShot
+    // writes its progress to data-lid), he sweeps his arm toward it, a
+    // presenter's reveal, eyes on it. Scrubbed, so it runs both ways.
+    const swCut = document.querySelector<HTMLElement>("#starweave .ps-stage");
+    let revealing = false;
+    const revealCut = () => {
+      if (!engine || !swCut) return;
+      const here = phase === "home" && !!spot.closest("#starweave [data-host-lane]");
+      const lid = here ? Number(swCut.dataset.lid ?? 0) : 0;
+      if (lid > 0 && lid < 1) {
+        if (asleep) wake();
+        touch();
+        engine.scrub("reveal", lid);
+        const r = swCut.querySelector(".ps-screen")!.getBoundingClientRect();
+        engine.gaze({ x: r.left + r.width * 0.45, y: r.top + r.height * 0.5 });
+        revealing = true;
+      } else if (revealing) {
+        engine.scrub("reveal", 0);
+        engine.gaze(null);
+        revealing = false;
+      }
     };
 
     let walkRaf = 0;
@@ -885,6 +1235,9 @@ export default function HostLayer() {
           }
         }
         if (phase === "home" && spot === ldSpot) inCinema();
+        if (phase === "home") watchFilm();
+        if (phase === "home") goodbye();
+        revealCut();
       });
     };
     window.addEventListener("scroll", onWalk, { passive: true });
@@ -905,7 +1258,11 @@ export default function HostLayer() {
           // Let his story line be read first; then the cue (unless something
           // was said meanwhile, or the guide moved on).
           const n = reacted;
+          const at = spot;
           after(Math.max(0, arrivedAt + STORY_MS - performance.now()), () => {
+            // He's moved on (a fast scroll): the line belongs to the room he
+            // left, so it waits for the next visit there.
+            if (spot !== at) return void cued.delete(key);
             const guide = el.querySelector<HTMLElement>("[data-guide]")?.dataset.guide;
             // A room's guide waiting for its first tap has its own line (Starweave "face", Arthouse "tap").
             const waiting = guide === "face" || guide === "tap";
@@ -924,9 +1281,9 @@ export default function HostLayer() {
 
     // What you do in his room: he answers (a line and a small move).
     const onReact = (ev: Event) => {
-      const d = (ev as CustomEvent<{ kind: "proof" | "song" | "route" | "walk" | "guide" | "double"; tier?: number; on?: boolean; step?: number; a?: string; b?: string }>).detail;
+      const d = (ev as CustomEvent<{ kind: "proof" | "song" | "route" | "walk" | "guide" | "double" | "copied"; tier?: number; on?: boolean; step?: number; a?: string; b?: string }>).detail;
       // Only in a room (the hero has no part to react to).
-      if (!engine || phase !== "home" || !spot.closest("section")) return;
+      if (!engine || phase !== "home" || !spot.closest("section, footer")) return;
       const now = performance.now();
       const kind = d.kind + (d.step ?? "");
       if (kind === lastReact.kind && now - lastReact.at < 1500) return;
@@ -936,8 +1293,8 @@ export default function HostLayer() {
       touch();
       if (d.kind === "guide") {
         if (d.step === 0) {
-          say(GUIDE.nudge(d.b ?? ""), 0);
-          engine.play("point");
+          // (Scrolled past the tree untapped: the page's own prompt asks; he just looks.)
+          engine.play("look");
         } else if (d.step === 1) {
           say(GUIDE.proof(d.b ?? "", d.a ?? "", !!spot.closest("[data-host-lane]")), 0);
         } else if (d.step === 2) {
@@ -945,7 +1302,8 @@ export default function HostLayer() {
           engine.play("nod");
           const n = said_;
           // (A nod, not a wave: a wave would drop the proof he's holding.)
-          after(4800, () => said_ === n && phase === "home" && (say(GUIDE.yours, 0), engine?.play("nod")));
+          const at = spot;
+          after(4800, () => said_ === n && spot === at && phase === "home" && (say(GUIDE.yours, 0), engine?.play("nod")));
         } else {
           say(GUIDE.yours, 0);
           engine.play("nod");
@@ -965,6 +1323,9 @@ export default function HostLayer() {
       } else if (d.kind === "walk") {
         say(REACT.walk, 0);
         engine.play("look");
+      } else if (d.kind === "copied") {
+        say(REACT.copied, 0);
+        engine.play("nod");
       }
       // The proof in his column changed (or went): hold it up, or let go.
       rehold(d.kind === "route" ? 2600 : 150);
@@ -1063,6 +1424,9 @@ export default function HostLayer() {
       hit.removeEventListener("pointermove", onMove);
       hit.removeEventListener("pointerup", onUp);
       hit.removeEventListener("pointercancel", onUp);
+      hit.removeEventListener("lostpointercapture", onLost);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("pointermove", onAnyMove);
       document.documentElement.classList.remove("is-holding-host", "host-live");
       io?.disconnect();
       engine?.dispose();

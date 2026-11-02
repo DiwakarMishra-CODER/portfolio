@@ -15,6 +15,7 @@ import {
   Color,
   DirectionalLight,
   Euler,
+  Group,
   HemisphereLight,
   LoopOnce,
   LoopRepeat,
@@ -34,6 +35,7 @@ import { buildVoxelHost } from "./voxel/model";
 import { loadGlbHost } from "./glb/loadGlb";
 import { buildCape } from "./cape";
 import { buildProjector, makeReel } from "./projector";
+import { buildPopcorn, buildSeat } from "./seat";
 
 /** Ready-made characters (Quaternius, CC0), in public/host/. */
 const GLB = { suit: "/host/suit.glb", casual: "/host/casual.glb" } as const;
@@ -91,7 +93,11 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
   // A ready-made character, or the hand-built one if its file can't load.
   const rig: HostRig = model === "voxel" || model === "toon" ? hand() : await loadGlbHost(GLB[model], { outline: hd }).catch(hand);
   rig.object.rotation.y = facing;
-  scene.add(rig.object);
+  // A turn about the view axis through his middle (the dive into the film),
+  // on a group around him so it never fights his own facing and lean.
+  const tiltGroup = new Group();
+  tiltGroup.add(rig.object);
+  scene.add(tiltGroup);
   // The look-at turns the neck and head on top of the clip, for drawing only:
   // they're put back after each frame. (Resetting bones before the mixer
   // doesn't work: the mixer skips writing a value that hasn't changed since
@@ -99,16 +105,16 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
   holdRest(rig);
   // His cape, folded away until he flies.
   const cape = buildCape(rig);
-  // A film reel he can carry at his side (into the cinema), hung from his left
-  // wrist in the rest pose so it swings with his arm; hidden until carried.
+  // A film reel he carries into the cinema, in his right hand (the projector's
+  // side), gripped by its rim; hidden until carried.
   const handReel = makeReel(rig.height, 0.11);
-  const wrist = rig.object.getObjectByName("WristL");
+  const wrist = rig.object.getObjectByName("WristR");
   if (wrist) {
     const turned = rig.object.rotation.y;
     rig.object.rotation.y = 0;
     rig.object.updateMatrixWorld(true);
     const at = wrist.getWorldPosition(new Vector3());
-    handReel.object.position.set(at.x + rig.height * 0.05, at.y - rig.height * 0.07, at.z + rig.height * 0.02);
+    handReel.object.position.set(at.x - rig.height * 0.05, at.y - rig.height * 0.07, at.z + rig.height * 0.02);
     rig.object.add(handReel.object);
     rig.object.updateMatrixWorld(true);
     wrist.attach(handReel.object);
@@ -116,6 +122,101 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
     rig.object.updateMatrixWorld(true);
   }
   handReel.object.visible = false;
+  const reelRest = { p: handReel.object.position.clone(), q: handReel.object.quaternion.clone() };
+
+  // ── The Arthouse room: his seat behind him, popcorn when he sits ──────
+  // Measured on his rest pose: sitting, his thighs go level, so his hips come
+  // down by a thigh's length and his seat is at knee height.
+  const yOf = (n: string, fallback: number) => {
+    const b = rig.object.getObjectByName(n);
+    return b ? b.getWorldPosition(new Vector3()).y : fallback;
+  };
+  rig.object.updateMatrixWorld(true);
+  const hipY = yOf("UpperLegL", rig.height * 0.42);
+  const kneeY = yOf("LowerLegL", rig.height * 0.22);
+  const sitDrop = Math.max(0, hipY - kneeY);
+  const SIT_BACK = rig.height * 0.12; // he sits back into it
+  const seat = buildSeat(rig.height, kneeY - rig.height * 0.03);
+  const seatGroup = new Group();
+  seatGroup.add(seat.object);
+  seatGroup.visible = false;
+  scene.add(seatGroup);
+  const popcorn = buildPopcorn(rig.height);
+  // On his lap (in his own frame, which sits and turns with him), a little
+  // to his left where his left hand holds it.
+  popcorn.object.position.set(rig.height * 0.035, hipY + rig.height * 0.02, rig.height * 0.1);
+  popcorn.object.visible = false;
+  rig.object.add(popcorn.object);
+  // His feet aren't on his legs in this model: they hang off the root and the
+  // clips place them (Quaternius' rig). Bending his knees (sitting, the
+  // wind-up) would leave them on the floor and stretch his shoes, so while a
+  // knee bend is on, each foot is carried by its shin, as in the rest pose.
+  const feet = (["L", "R"] as const)
+    .map((side) => ({ foot: rig.object.getObjectByName(`Foot${side}`), shin: rig.object.getObjectByName(`LowerLeg${side}`) }))
+    .filter((f): f is { foot: NonNullable<typeof f.foot>; shin: NonNullable<typeof f.shin> } => !!f.foot && !!f.shin && !!f.foot.parent)
+    .map(({ foot, shin }) => ({
+      foot,
+      shin,
+      at: shin.worldToLocal(foot.getWorldPosition(new Vector3())),
+      turn: shin.getWorldQuaternion(new Quaternion()).invert().multiply(foot.getWorldQuaternion(new Quaternion())),
+      saved: { p: new Vector3(), q: new Quaternion() },
+    }));
+  let feetOnShins = 0; // 0 → 1: how far the feet follow the shins this frame
+  const _v = new Vector3();
+  const _q = new Quaternion();
+  const _pq = new Quaternion();
+  /** Carry the feet; returns how far they came up off where the clip had them. */
+  function carryFeet() {
+    for (const f of feet) {
+      f.saved.p.copy(f.foot.position);
+      f.saved.q.copy(f.foot.quaternion);
+    }
+    if (feetOnShins <= 0) return 0;
+    rig.object.updateMatrixWorld(true);
+    let lift = 0;
+    for (const f of feet) {
+      const target = f.shin.localToWorld(_v.copy(f.at));
+      const now = f.foot.getWorldPosition(new Vector3()).lerp(target, feetOnShins);
+      lift += (now.y - f.foot.getWorldPosition(new Vector3()).y) / feet.length;
+      f.foot.position.copy(f.foot.parent!.worldToLocal(now));
+      const tq = f.shin.getWorldQuaternion(_q).multiply(f.turn);
+      const wq = f.foot.getWorldQuaternion(new Quaternion()).slerp(tq, feetOnShins);
+      f.foot.quaternion.copy(f.foot.parent!.getWorldQuaternion(_pq).invert().multiply(wq));
+    }
+    return lift;
+  }
+  function restoreFeet() {
+    for (const f of feet) {
+      f.foot.position.copy(f.saved.p);
+      f.foot.quaternion.copy(f.saved.q);
+    }
+  }
+  let sitTarget = 0;
+  let sitK = 0;
+  let munchAt = 0; // when the popcorn starts (once he's down)
+  // Putting it on the projector: it leaves his hand and slides onto the front
+  // arm (world space), then the projector's own reel takes over.
+  let mounting: { t: number; p0: Vector3; q0: Quaternion; p1: Vector3; q1: Quaternion } | null = null;
+  const MOUNT_SLIDE = 0.45;
+  function endMount() {
+    if (!mounting) return;
+    mounting = null;
+    handReel.object.visible = false;
+    if (wrist) {
+      wrist.add(handReel.object);
+      handReel.object.position.copy(reelRest.p);
+      handReel.object.quaternion.copy(reelRest.q);
+    }
+    prop?.loaded(true);
+  }
+  function stepMount(dt: number) {
+    if (!mounting) return;
+    mounting.t = Math.min(1, mounting.t + dt / MOUNT_SLIDE);
+    const k = 1 - Math.pow(1 - mounting.t, 3);
+    handReel.object.position.lerpVectors(mounting.p0, mounting.p1, k);
+    handReel.object.quaternion.slerpQuaternions(mounting.q0, mounting.q1, k);
+    if (mounting.t >= 1) endMount();
+  }
   const looked = [rig.bones.neck, rig.bones.head].filter((b): b is NonNullable<typeof b> => !!b).map((b) => [b, b.quaternion.clone()] as const);
 
   let blob: Mesh | null = null;
@@ -161,7 +262,11 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
       next.fadeIn(fade).play();
       return;
     }
-    if (next === current) return;
+    if (next === current) {
+      // (Held by scrub(): back to running on time.)
+      next.paused = false;
+      return;
+    }
     // A whole-body move ends any small one.
     stopSmall(fade);
     next.reset();
@@ -175,8 +280,47 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
     const a = actions.get(name);
     return !!a && a.enabled && a.getEffectiveWeight() > 0.5;
   }
+  // Small moves the engine itself keeps on (sitting, the popcorn): a whole-body
+  // move or stopSmall() leaves them be.
+  const pinned = new Set<ClipName>(["sit"]);
   function stopSmall(fade = 0.25) {
-    actions.forEach((a) => additive(a) && a.enabled && a.getEffectiveWeight() > 0 && a.fadeOut(fade));
+    actions.forEach((a, n) => !pinned.has(n) && additive(a) && a.enabled && a.getEffectiveWeight() > 0 && a.fadeOut(fade));
+  }
+  /** Hold a small move at a point (0 → 1), at full weight; 0 takes it off. */
+  function holdSmall(name: ClipName, at: number) {
+    const a = action(name);
+    if (!a) return;
+    if (at <= 0) {
+      if (a.isRunning() || a.paused) a.stop();
+      return;
+    }
+    if (!a.isRunning() && !a.paused) {
+      a.reset();
+      a.setLoop(LoopOnce, 1);
+      a.clampWhenFinished = true;
+      a.play();
+    }
+    a.enabled = true;
+    a.stopFading();
+    a.setEffectiveWeight(1);
+    a.paused = true;
+    a.time = Math.min(at, 1) * a.getClip().duration;
+  }
+  /** How far into the wind-up's crouch he is (its knees bend too). */
+  function windupOn() {
+    const a = actions.get("windup");
+    return a && (a.isRunning() || a.paused) && a.enabled ? Math.min(1, a.time / a.getClip().duration) * a.getEffectiveWeight() : 0;
+  }
+  const SIT_S = 0.6; // seconds to sit down or stand up
+  function stepSit(dt: number, now: number) {
+    if (sitK === sitTarget) return;
+    sitK = sitTarget > sitK ? Math.min(sitTarget, sitK + dt / SIT_S) : Math.max(sitTarget, sitK - dt / SIT_S);
+    const e = sitK * sitK * (3 - 2 * sitK);
+    holdSmall("sit", e);
+    const c = Math.max(0, (e - 0.55) / 0.45);
+    popcorn.object.visible = c > 0;
+    popcorn.object.scale.setScalar(Math.max(0.001, c));
+    if (sitK === 1) munchAt = now + 500;
   }
 
   // ── Size: a whole-number upscale of a small canvas ─────────────────────
@@ -238,7 +382,10 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
     let pitch = 0;
     let eye = 0;
     const target = gazePoint ?? (pointer && performance.now() - pointer.t < 3000 ? pointer : null);
-    if (target) {
+    // Turned away from us (walking out), he looks where he's going.
+    const away = Math.abs(facing + heading) > 1.3;
+    if (away) yaw = 0;
+    if (target && !away) {
       rig.bones.head.getWorldPosition(headWorld);
       headWorld.y += rig.height * 0.14;
       headWorld.project(camera);
@@ -285,6 +432,7 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
   let lean = 0;
   let leanTarget = 0;
   let spun = 0;
+  let tiltR = 0;
   function turn(dt: number) {
     const k = 1 - Math.exp(-dt * 9);
     heading += (headingTarget - heading) * k;
@@ -297,6 +445,12 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
     }
     if (opts.spin) spun += dt * 0.6;
     rig.object.rotation.set(0, facing + heading + spinAngle + spun, lean);
+    seatGroup.rotation.y = rig.object.rotation.y;
+    // Sitting: down by a thigh and back into the seat, along his facing.
+    const sit = sitK * sitK * (3 - 2 * sitK);
+    const yaw = rig.object.rotation.y;
+    const mid = rig.height * 0.5;
+    tiltGroup.position.set(mid * Math.sin(tiltR) - Math.sin(yaw) * SIT_BACK * sit, mid * (1 - Math.cos(tiltR)) - sitDrop * sit, -Math.cos(yaw) * SIT_BACK * sit);
   }
 
   // ── The loop ──────────────────────────────────────────────────────────
@@ -314,14 +468,31 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
     if (acc < (fast ? 1 / 60 : 1 / 30) - 0.002) return;
     const step = acc;
     acc = 0;
+    stepSit(step, now);
+    // Settled in his seat: the popcorn (a slow loop, hand to bucket to mouth).
+    if (munchAt && now >= munchAt) {
+      munchAt = 0;
+      if (sitTarget === 1) {
+        pinned.add("munch");
+        play("munch", { loop: true, fade: 0.4 });
+      }
+    }
     turn(step);
     mixer.update(step);
+    stepMount(step);
+    const crouch = windupOn();
+    feetOnShins = Math.max(sitK * sitK * (3 - 2 * sitK), crouch);
+    const lift = carryFeet();
+    // Crouching (not sitting): down by as much as his feet came up, so they
+    // stay on the floor and his hips drop instead.
+    rig.object.position.y = crouch > 0 && sitK === 0 ? -lift : 0;
     cape.update(step);
     for (const [b, q] of looked) q.copy(b.quaternion);
     aim(step);
     blink(now);
     draw();
     for (const [b, q] of looked) b.quaternion.copy(q);
+    restoreFeet();
     if (first) {
       first = false;
       opts.onFirstFrame?.();
@@ -383,6 +554,66 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
     face(dir: -1 | 0 | 1) {
       headingTarget = dir === 0 ? 0 : dir * 1.1 - facing;
     },
+    /** Turn his whole body to a yaw (0 faces us; negative toward the
+     *  viewer's left, past ±π/2 his back is to us), or back to usual (null). */
+    yaw(r: number | null) {
+      headingTarget = r == null ? 0 : r - facing;
+    },
+    /** His cinema seat stands behind him (the Arthouse room), or not. */
+    seat(on: boolean) {
+      seatGroup.visible = on;
+      if (!on && sitTarget) this.sit(false, true);
+    },
+    /** Sit down in it (with popcorn) or get up; `now` skips the motion. */
+    sit(on: boolean, now = false) {
+      sitTarget = on ? 1 : 0;
+      if (!on) {
+        munchAt = 0;
+        pinned.delete("munch");
+        const m = actions.get("munch");
+        if (m?.isRunning()) m.fadeOut(0.2);
+      }
+      if (now) {
+        sitK = sitTarget === 1 ? 0.999 : 0.001;
+        stepSit(1, performance.now());
+      }
+    },
+    /** Is he sitting (or on his way down)? */
+    sitting() {
+      return sitTarget === 1;
+    },
+    /** Hold a move at a point (0 → 1 through it), driven by the page (the
+     *  scroll): a step of the walk, how far into a wind-up. A whole-body move
+     *  becomes his move; a small one sits on top at full weight; 0 takes a
+     *  small one off. play() hands control back to time. */
+    scrub(name: ClipName, at: number) {
+      const a = action(name);
+      if (!a) return;
+      const d = a.getClip().duration;
+      if (additive(a)) {
+        if (at <= 0) {
+          if (a.enabled) a.stop();
+          return;
+        }
+        if (!a.isRunning() && !a.paused) {
+          a.reset();
+          a.setLoop(LoopOnce, 1);
+          a.clampWhenFinished = true;
+          a.play();
+        }
+        a.setEffectiveWeight(1);
+      } else if (current !== a) play(name, { loop: true, fade: 0.15 });
+      a.paused = true;
+      a.time = additive(a) ? Math.min(at, 1) * d : (((at % 1) + 1) % 1) * d;
+    },
+    /** Turn him about the view axis through his middle (radians, counter-
+     *  clockwise on screen), right now: the dive into the film. */
+    tilt(r: number) {
+      const k = rig.height * 0.5;
+      tiltR = r;
+      tiltGroup.rotation.z = r;
+      tiltGroup.position.set(k * Math.sin(r), k * (1 - Math.cos(r)), 0);
+    },
     /** Lean while carried (radians about the view axis). */
     lean(r: number) {
       leanTarget = Math.max(-0.5, Math.min(0.5, r));
@@ -411,6 +642,7 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
         scene.add(prop.object);
         propShift = -rig.height * 0.2;
       } else if (prop) {
+        endMount();
         scene.remove(prop.object);
         prop.dispose();
         prop = null;
@@ -424,7 +656,28 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
     },
     /** The projector's front reel (the film he brought) is mounted. */
     loadReel(on: boolean) {
+      if (!on) endMount();
       prop?.loaded(on);
+    },
+    /** He puts the reel he's carrying onto the projector: it slides from his
+     *  hand onto the front arm, and is the projector's from then on. */
+    mountReel() {
+      if (!prop || !handReel.object.visible || mounting) {
+        prop?.loaded(true);
+        handReel.object.visible = false;
+        return;
+      }
+      rig.object.updateMatrixWorld(true);
+      const slot = prop.frontReel();
+      slot.updateWorldMatrix(true, false);
+      scene.attach(handReel.object);
+      mounting = {
+        t: 0,
+        p0: handReel.object.position.clone(),
+        q0: handReel.object.quaternion.clone(),
+        p1: slot.getWorldPosition(new Vector3()),
+        q1: slot.getWorldQuaternion(new Quaternion()),
+      };
     },
     /** Show or hide him (the lab renders the projector on its own). */
     figure(on: boolean) {
@@ -476,6 +729,8 @@ export async function createEngine(canvas: HTMLCanvasElement, opts: EngineOption
       cape.dispose();
       prop?.dispose();
       handReel.dispose();
+      seat.dispose();
+      popcorn.dispose();
       pass.dispose();
       renderer.dispose();
     },

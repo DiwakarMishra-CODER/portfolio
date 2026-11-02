@@ -53,13 +53,18 @@
   .room-host-row .pg-spot[data-size="lane"] {
     width: 260px;
   }
+  /* His bubble at his face, not his legs: as high as it can go without
+     covering what he holds up (that ends 150px into this row), so just
+     under it in the rooms; a column with nothing held sets --say-at to
+     his mouth. Its tail points up at him. */
   .room-host-row .host-bubble {
     z-index: 1;
-    margin: 0 -56px 34px 0;
+    align-self: start;
+    margin: var(--say-at, 162px) -56px 0 0;
   }
   .room-host-row .host-bubble::after {
-    top: auto;
-    bottom: 22px;
+    top: 16px;
+    bottom: auto;
     left: auto;
     right: -7px;
     margin: 0;
@@ -107,4 +112,174 @@
     translate: 0 0;
     scale: 0.88;
   }
+}
+/* ── The front: the real site, recorded, in a plain browser frame ───── */
+.room-open {
+  margin-top: 26px;
+}
+.room-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 18px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.room-actions a {
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+.room-spec {
+  margin-top: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.ps {
+  margin: 28px 0 0;
+  --ps-chrome: #1c1a22;
+  --ps-line: rgba(255, 255, 255, 0.14);
+}
+.ps-frame {
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--ps-chrome);
+  box-shadow: 0 0 0 1px var(--ps-line), 0 30px 60px -30px rgba(0, 0, 0, 0.8);
+}
+.ps-bar {
+  display: flex;
+  justify-content: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ps-line);
+}
+.ps-url {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.ps-url svg {
+  width: 10px;
+  height: 12px;
+  opacity: 0.7;
+}
+.ps-go {
+  color: var(--signal);
+}
+.ps-url:hover {
+  color: #fff;
+}
+.ps-screen {
+  position: relative;
+  aspect-ratio: 1280 / 800;
+  background: #0d0c10;
+}
+.ps-poster,
+.ps-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ps-video {
+  opacity: 0;
+  transition: opacity 0.25s linear;
+}
+.ps[data-state="playing"] .ps-video,
+.ps[data-state="ended"] .ps-video {
+  opacity: 1;
+}
+.ps-replay {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--signal);
+  background: rgba(13, 12, 16, 0.82);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ps-replay:hover {
+  background: var(--signal);
+  color: var(--ink);
+}
+.ps figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: 0.7;
+}
+/* The seam between the front and the inside. */
+.room-try {
+  margin-top: clamp(56px, 7vw, 88px);
+}
+.room-try h3 {
+  font-size: clamp(24px, 2.2vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.room-try p {
+  margin-top: 6px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* ── The cut: the screen swings open on what's inside ──────────────── */
+.ps-lid {
+  position: absolute;
+  inset: 0;
+}
+.ps-inside {
+  position: absolute;
+  inset: 0;
+}
+/* The stretch the shot is held for: a spacer, not padding (a sticky box
+   can't move into its parent's padding). */
+.ps-stage.is-cut::after {
+  content: "";
+  display: block;
+  height: 75svh;
+}
+@media (max-width: 760px) {
+  .ps-stage.is-cut::after {
+    height: 42svh; /* a small frame: a shorter hold */
+  }
+}
+.ps-stage.is-cut .ps {
+  position: sticky;
+  top: 92px;
+}
+.ps-stage.is-cut .ps-screen {
+  perspective: 1700px;
+}
+/* A door opening inward on its left hinge: it turns away into the frame,
+   so it never pokes out of it, and is gone past 90°. */
+.ps-stage.is-cut .ps-lid {
+  transform-origin: 0 50%;
+  transform: rotateY(calc(var(--lid, 0) * 100deg));
+  backface-visibility: hidden;
+}
+/* The lid's shadow on what's inside, near the hinge, fading as it opens. */
+.ps-stage.is-cut .ps-inside::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 45%);
+  opacity: calc(1 - var(--lid, 0));
+  pointer-events: none;
+}
+.ps-stage:not(.is-cut) .ps-inside {
+  display: none;
 }

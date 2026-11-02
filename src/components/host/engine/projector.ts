@@ -105,6 +105,10 @@ export function buildProjector(H: number) {
       reels[1].rotation.z = -a;
       crank.rotation.x = a * 1.6;
     },
+    /** The front reel's place (where the one he carries goes). */
+    frontReel() {
+      return reels[0];
+    },
     /** The front reel (the film he carried in) is on. */
     loaded(on: boolean) {
       reels[0].visible = on;

@@ -294,11 +294,17 @@
 .pg-shipped {
   margin-top: 24px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--graphite);
 }
-.pg-shipped span {
+/* What he's shipped, said plainly: each name goes to its room. */
+.pg-shipped a {
+  font-weight: 700;
   color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 .pg-hero-host {
   position: relative;
@@ -481,7 +487,6 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  font-variant-numeric: tabular-nums;
 }
 .pg-plaque-v small {
   margin-left: 6px;
@@ -489,6 +494,57 @@
   font-weight: 700;
   letter-spacing: 0;
   color: var(--graphite);
+}
+/* The Knight badge: an enamel shield and its title in gold, with a slow
+   sheen across the shield (it's earned: rating 1850+). */
+.pg-knight {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  vertical-align: 2px;
+}
+.pg-knight svg {
+  width: 22px;
+  height: 25px;
+  filter: drop-shadow(0 1.5px 0 rgba(90, 60, 15, 0.35));
+}
+.pg-knight span {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #d6a744, #9b6b1f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.pg-knight::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  height: 25px;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%) -30px 0 / 60px 100% no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 32'%3E%3Cpath d='M14 1 L26 5 V15 C26 23 20.5 28.5 14 31 C7.5 28.5 2 23 2 15 V5 Z'/%3E%3C/svg%3E") 0 0 / 100% 100%;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 32'%3E%3Cpath d='M14 1 L26 5 V15 C26 23 20.5 28.5 14 31 C7.5 28.5 2 23 2 15 V5 Z'/%3E%3C/svg%3E") 0 0 / 100% 100%;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pg-knight::after {
+    animation: knight-sheen 5s ease-in-out 2.5s infinite;
+  }
+}
+@keyframes knight-sheen {
+  0%,
+  70% {
+    background-position: -30px 0;
+  }
+  100% {
+    background-position: 30px 0;
+  }
 }
 .pg-plaque-v i {
   margin-left: 6px;
@@ -650,10 +706,45 @@
 /* ── About ───────────────────────────────────────────────── */
 .pg-about {
   position: relative;
+  isolation: isolate;
+  overflow-x: clip;
   padding: clamp(80px, 10vw, 140px) 0;
-  background: var(--sheet);
-  border-top: 1px solid var(--hairline);
-  border-bottom: 1px solid var(--hairline);
+  --floor-h: clamp(80px, 10vw, 140px);
+}
+/* Sunlight through a four-pane window, fallen across the wall at a slant
+   (a 96×72 dithered image, upscaled 7×, kept crisp), and a warm glow where
+   he stands. Light only pales and warms the sand, never darkens it. */
+.ab-light {
+  position: absolute;
+  z-index: -1;
+  right: max(-20px, calc(50% - 700px));
+  top: clamp(40px, 5vw, 80px);
+  width: 512px; /* 64×52, 8px a pixel */
+  height: 416px;
+  background: url(/bg/window-day.png) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.ab-glow {
+  position: absolute;
+  z-index: -1;
+  right: max(-200px, calc(50% - 900px));
+  bottom: 0;
+  width: 720px;
+  aspect-ratio: 1;
+  background: url(/bg/glow-day.png) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.ab-floor {
+  z-index: -1;
+}
+@media (max-width: 760px) {
+  .ab-light {
+    right: -120px;
+    width: 384px;
+    height: 312px;
+  }
 }
 .pg-about-grid {
   display: grid;
@@ -709,13 +800,14 @@
 
 /* ── Contact: the evening plate ──────────────────────────── */
 .pg-contact {
-  --eve: #1f1a1c;
+  --eve: #1c1530; /* the sky's top */
+  --ground: #150f17;
   position: relative;
   margin-top: 32px;
-  padding: clamp(72px, 9vw, 120px) 0 40px;
-  background: var(--eve);
+  background: var(--ground);
   color: #f3eee7;
 }
+/* The sand dissolves into the evening sky. */
 .pg-contact::before {
   content: "";
   position: absolute;
@@ -723,8 +815,92 @@
   right: 0;
   top: -32px;
   height: 32px;
-  background: url(/bg/band-evening.png) repeat-x 0 0 / 64px 32px;
+  background: url(/bg/band-sunset.png) repeat-x 0 0 / 64px 32px;
   image-rendering: pixelated;
+}
+/* The sky: dithered bands (a 16×120 image, 6px a pixel) from indigo through
+   plum and rose to ember at the horizon, which is its bottom edge. */
+.ct-sky {
+  position: relative;
+  overflow: hidden;
+  padding-top: clamp(72px, 9vw, 120px);
+  background: url(/bg/sky-sunset.png) repeat-x 0 100% / 96px 720px, var(--eve);
+  image-rendering: pixelated;
+}
+.ct-sky > .pg-wrap {
+  z-index: 1;
+}
+.pg-contact-main {
+  padding-bottom: clamp(96px, 12vw, 150px);
+}
+/* The sun, half gone behind the horizon, behind him. */
+.ct-sun {
+  position: absolute;
+  bottom: -170px;
+  right: -140px;
+  width: 504px;
+  height: 504px;
+  background: url(/bg/sun-set.png) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+@media (min-width: 1280px) {
+  .ct-sun {
+    right: calc(max(var(--gutter), 50% - 656px) + 90px - 252px);
+  }
+}
+/* Narrow (no column for him): smaller and further down, clear of the buttons. */
+@media (max-width: 1279px) {
+  .ct-sun {
+    bottom: -200px;
+    right: -150px;
+    width: 360px;
+    height: 360px;
+  }
+}
+.ct-cloud {
+  position: absolute;
+  width: 264px;
+  height: 36px;
+  background: url(/bg/cloud-lit.png) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.ct-cloud-a {
+  bottom: 150px;
+  right: 18%;
+}
+.ct-cloud-b {
+  bottom: 96px;
+  right: 3%;
+  width: 198px;
+  height: 27px;
+}
+.ct-cloud-c {
+  bottom: 230px;
+  left: 44%;
+  width: 330px;
+  height: 45px;
+  background-image: url(/bg/cloud-dim.png);
+}
+/* The ground under the sunset: a lit rim on the horizon, the warmth fading
+   down into the dark where the links are. */
+.ct-ground {
+  position: relative;
+  padding: 26px 0 40px;
+  box-shadow: 0 -2px 0 rgba(255, 176, 103, 0.75);
+}
+.ct-ground::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 32px;
+  background: url(/bg/band-ground.png) repeat-x 0 0 / 64px 32px;
+  image-rendering: pixelated;
+  scale: 1 -1;
+  pointer-events: none;
 }
 .pg-contact .pg-said {
   color: var(--ink);
@@ -734,6 +910,15 @@
   max-width: 20ch;
   font-size: clamp(32px, 3.8vw, 56px);
   line-height: 1.02;
+}
+/* Under the ask: the roles and when, one calmer line. */
+.pg-contact-sub {
+  max-width: 40ch;
+  text-wrap: balance;
+  margin-top: 12px;
+  font-size: clamp(19px, 1.7vw, 24px);
+  font-weight: 600;
+  color: rgba(243, 238, 231, 0.82);
 }
 .pg-email {
   display: inline-block;
@@ -776,15 +961,28 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px 32px;
-  margin-top: clamp(64px, 8vw, 104px);
-  padding-top: 20px;
-  border-top: 1px solid rgba(243, 238, 231, 0.18);
+  position: relative;
   font-size: 14px;
   color: rgba(243, 238, 231, 0.72);
 }
 .pg-foot p:first-child {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+}
+/* The links look like links: full colour, an orange underline, an arrow. */
+.pg-foot p:first-child a {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f3eee7;
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+.pg-foot p:first-child a::after {
+  content: " ↗";
+  color: var(--signal);
 }
 .pg-foot a:hover {
   color: #ffd2bd;
@@ -824,5 +1022,131 @@
   }
   .pg-plaque:nth-child(3) {
     animation-delay: 420ms;
+  }
+}
+
+/* About on wide screens: his column beside it, like the rooms' (his bubble at
+   his side), standing on the photo's baseline. The printed line hides once
+   he's live, since he says it there. */
+@media (min-width: 1280px) {
+  .pg-about .room-grid {
+    grid-template-columns: minmax(0, 1fr) 420px;
+  }
+  .about-lane {
+    align-self: end;
+  }
+  .about-lane .room-host-row {
+    margin-top: 0;
+    --say-at: 44px; /* nothing held: at his mouth */
+  }
+  .host-live .pg-about .pg-said {
+    display: none;
+  }
+  .host-live .pg-about h2 {
+    margin-top: 0;
+  }
+}
+
+/* His column at the end of the tour: his card held up, his bubble at his side. */
+.ct-card {
+  position: relative;
+  padding: 18px 64px 16px 24px;
+  border-radius: 6px;
+  background: linear-gradient(160deg, #fbf6ee, #efe5d6);
+  color: var(--ink);
+  rotate: -3deg;
+  box-shadow: 0 24px 40px -22px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(20, 20, 19, 0.08);
+}
+.ct-mark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+.ct-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.ct-role {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--graphite);
+}
+.ct-email {
+  display: block;
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.ct-email[data-done] {
+  color: var(--signal-ink);
+}
+.ct-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--graphite);
+}
+@media (min-width: 1280px) {
+  .pg-contact .room-grid {
+    grid-template-columns: minmax(0, 1fr) 470px;
+  }
+  .contact-lane .room-slot {
+    min-height: 250px;
+  }
+  /* Just under the card (its corner is in his hand, 72px above the row's
+     150px overlap). */
+  .contact-lane .room-host-row {
+    --say-at: 92px;
+  }
+  /* Held up by its bottom corner: that corner rests in his raised hand
+     (an open hand on the card's side read as pointing at it). */
+  .contact-lane .room-slot > .ct-card {
+    width: 344px;
+    margin: 0 0 72px -24px;
+    padding-right: 40px;
+  }
+  /* He hands it over once he's here; until then the column waits empty. */
+  .contact-lane .ct-card {
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 16px;
+    transition: opacity 0.3s linear, translate 0.45s var(--ease-land), visibility 0s linear 0.3s;
+  }
+  .contact-lane:has(.pg-spot.is-live) .ct-card {
+    opacity: 1;
+    visibility: visible;
+    translate: 0 0;
+    transition: opacity 0.3s linear, translate 0.45s var(--ease-land);
+  }
+  /* Tall enough that its top can reach the reading line, so he gets here. */
+  .pg-contact {
+    min-height: 62svh;
+  }
+  /* He stands on the horizon, the sun behind him. */
+  .contact-lane {
+    align-self: end;
+  }
+  .contact-lane .room-lane-inner {
+    position: static;
+  }
+  .host-live .pg-contact .pg-said {
+    display: none;
+  }
+  .host-live .pg-contact h2 {
+    margin-top: 0;
   }
 }

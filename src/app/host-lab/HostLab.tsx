@@ -20,7 +20,7 @@ export default function HostLab() {
     if (!el) return;
     const poster = new URLSearchParams(location.search).has("poster");
     // The projector still is framed as in the cinema's spot (440 × 367).
-    if (new URLSearchParams(location.search).get("prop")) Object.assign(el.style, { width: "440px", aspectRatio: "6 / 5", background: "none" });
+    if (new URLSearchParams(location.search).get("prop") || new URLSearchParams(location.search).get("scene")) Object.assign(el.style, { width: "440px", aspectRatio: "6 / 5", background: "none" });
     let cancelled = false;
     let made: Engine | null = null;
     import("@/components/host/engine/engine").then(({ createEngine }) => {
@@ -45,6 +45,25 @@ export default function HostLab() {
         }
         const pose = q.get("pose")?.split("@");
         if (pose) setTimeout(() => e.pose(pose[0] as ClipName, Number(pose[1])), 300);
+        // ?scene=1: him at the projector, as in the cinema. ?carry=1: the reel
+        // in his hand. ?scrub=walk@0.25,carry@1: moves held where the page
+        // would hold them. ?tilt=1.2: the dive's turn (radians).
+        if (q.get("scene")) {
+          e.projector(true);
+          e.loadReel(q.get("loaded") === "1");
+        }
+        if (q.get("carry")) e.carry(true);
+        // ?seat=1: his cinema seat behind him; ?sit=1: sitting in it (popcorn).
+        if (q.get("seat")) e.seat(true);
+        if (q.get("sit")) setTimeout(() => e.sit(true), 300);
+        if (q.get("face")) e.face(Number(q.get("face")) as -1 | 0 | 1);
+        setTimeout(() => {
+          for (const s of q.get("scrub")?.split(",") ?? []) {
+            const [n, at] = s.split("@");
+            e.scrub(n as ClipName, Number(at));
+          }
+          if (q.get("tilt")) e.tilt(Number(q.get("tilt")));
+        }, 300);
       });
       // The poster: one idle frame at native size, for the page to show
       // before the engine (and when motion is off).

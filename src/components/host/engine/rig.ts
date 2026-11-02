@@ -7,7 +7,7 @@ import type { AnimationClip, Object3D } from "three";
 export const BONES = ["hips", "chest", "neck", "head", "armL", "armR", "legL", "legR"] as const;
 export type BoneName = (typeof BONES)[number];
 
-export const CLIPS = ["idle", "wave", "point", "think", "surprised", "held", "fall", "land", "walk", "run", "sit", "bump", "glasses", "watch", "stretch", "look", "shift", "nod", "sleep", "snore", "dizzy", "hold", "soar", "crank"] as const;
+export const CLIPS = ["idle", "wave", "point", "think", "surprised", "held", "fall", "land", "walk", "run", "sit", "bump", "glasses", "watch", "stretch", "look", "shift", "nod", "sleep", "snore", "dizzy", "hold", "soar", "crank", "carry", "mount", "windup", "dive", "sit", "munch", "clap", "reveal"] as const;
 export type ClipName = (typeof CLIPS)[number];
 
 /** A model missing a clip plays its stand-in instead (or nothing: the small

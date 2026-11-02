@@ -1,0 +1,262 @@
+/* ─────────────────────────────────────────────────────────────
+   The house lights come up (after Arthouse Atlas): the cinema's wall warms,
+   its lights come on in pairs, the EXIT door swings open onto daylight, and
+   the daylight floods the screen into the next section's page.
+   Compositor only (opacity from 0.01, transforms); outside the gate: the
+   lit wall and the open door, fading to the page.
+   ───────────────────────────────────────────────────────────── */
+.lu {
+  --black: #050505;
+  --day: var(--film); /* the About section's sand */
+  position: relative;
+  background: var(--black);
+}
+.lu-stage {
+  position: relative;
+  height: max(70svh, 520px);
+  overflow: hidden;
+  background: var(--black);
+}
+/* The back wall, warmed by the house lights (it ends at the floor, 74% down). */
+.lu-warm {
+  position: absolute;
+  inset: 0 0 26% 0;
+  background:
+    radial-gradient(60% 90% at 50% 100%, rgba(120, 72, 40, 0.5), transparent 70%),
+    linear-gradient(#24170f, #1a110b);
+}
+.lu-sconce {
+  position: absolute;
+  top: 28%;
+  width: 26px;
+  height: 14px;
+  translate: -50% 0;
+  border-radius: 13px 13px 3px 3px;
+  background: linear-gradient(#ffe2b0, #e0a85f);
+}
+/* Its light on the wall: up and down from the fitting, painted (no blur). */
+.lu-sconce::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 220px;
+  height: 300px;
+  translate: -50% -50%;
+  background:
+    radial-gradient(closest-side, rgba(255, 196, 128, 0.42), rgba(255, 170, 100, 0.12) 55%, transparent),
+    radial-gradient(40% 18% at 50% 50%, rgba(255, 226, 176, 0.55), transparent);
+  pointer-events: none;
+}
+.lu-floor {
+  position: absolute;
+  inset: 74% 0 0 0;
+  background: linear-gradient(#140d0a, #0b0807);
+}
+/* The aisle's step lights: always on, small and amber. */
+.lu-floor i {
+  position: absolute;
+  width: 7px;
+  height: 4px;
+  translate: -50% 0;
+  border-radius: 2px;
+  background: #f2b35c;
+  box-shadow: 0 0 0 3px rgba(242, 179, 92, 0.18);
+}
+
+/* The door: daylight behind a dark leaf, a thin line of it round the edges. */
+.lu-door {
+  position: absolute;
+  left: 50%;
+  bottom: 26%;
+  width: clamp(120px, 12vw, 180px);
+  height: min(44%, 360px);
+  translate: -50% 0;
+  perspective: 700px;
+  box-shadow: 0 0 0 10px #1d1714, 0 0 0 11px rgba(255, 255, 255, 0.06);
+}
+.lu-day {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#fffaf1, var(--day) 60%, #efe2cd);
+}
+.lu-leaf {
+  position: absolute;
+  inset: 2px 2px 3px;
+  background: linear-gradient(100deg, #2a2420, #1c1815);
+  transform-origin: 0 50%;
+}
+/* The push bar. */
+.lu-leaf::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 50%;
+  height: 7px;
+  border-radius: 4px;
+  background: linear-gradient(#bfa274, #8a7150);
+}
+/* The EXIT sign over it: always lit, green, with its glow on the wall. */
+.lu-exit {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 28px);
+  translate: -50% 0;
+  padding: 5px 14px 4px;
+  border-radius: 3px;
+  background: #0f8a45;
+  box-shadow: 0 0 0 2px #0a5e30, 0 0 0 5px rgba(40, 220, 120, 0.12);
+  color: #effff4;
+  font-family: var(--font-label), "Oswald", sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.lu-exit::before {
+  content: "";
+  position: absolute;
+  inset: -70px -110px;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(40, 210, 110, 0.32), transparent);
+}
+/* Daylight across the floor once the door's open. */
+.lu-spill {
+  position: absolute;
+  left: 50%;
+  top: 74%;
+  width: clamp(360px, 40vw, 620px);
+  height: 26%;
+  translate: -50% 0;
+  clip-path: polygon(35% 0, 65% 0, 100% 100%, 0 100%);
+  background: linear-gradient(rgba(255, 246, 228, 0.5), rgba(255, 246, 228, 0.04));
+  opacity: 0;
+}
+/* Then it floods the screen: the door's opening, grown to cover it all. */
+.lu-flood {
+  position: absolute;
+  left: 50%;
+  bottom: 26%;
+  width: clamp(120px, 12vw, 180px);
+  height: min(44%, 360px);
+  translate: -50% 0;
+  transform-origin: 50% 55%;
+  background: var(--day);
+  opacity: 0;
+}
+
+/* Once the light has filled the screen, the sand's fine grain comes up in
+   it (the page's own grain, so About continues it). */
+.lu-grain {
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Crect x='2' y='2' width='2' height='2' fill='%23e3d6c3'/%3E%3C/svg%3E") 0 0 / 6px 6px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Outside the gate (or reduced motion): the lit wall, the open door, and a
+   fade into the page below. */
+.lu-leaf {
+  transform: rotateY(-78deg);
+}
+.lu-spill {
+  opacity: 1;
+}
+.lu-stage::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 30%;
+  background: linear-gradient(transparent, var(--day));
+}
+
+/* ── The sequence, scrubbed by the scroll ─────────────────── */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lu {
+      height: 165svh;
+      view-timeline: --lu block;
+    }
+    .lu-stage {
+      position: sticky;
+      top: 0;
+      height: max(100svh, 620px);
+    }
+    .lu-stage::after {
+      display: none;
+    }
+    .lu-warm,
+    .lu-sconce,
+    .lu-leaf,
+    .lu-spill,
+    .lu-flood,
+    .lu-grain {
+      animation-duration: 1ms;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-timeline: --lu;
+    }
+    /* The house lights: the wall warms, the lights come on in pairs. */
+    .lu-warm {
+      animation-name: lu-on;
+      animation-range: entry 60% contain 30%;
+    }
+    .lu-sconce {
+      animation-name: lu-on;
+      animation-range: entry calc(70% + var(--k) * 12%) contain calc(var(--k) * 8% + 4%);
+    }
+    /* He reaches the door; it swings open (HostLayer's DOOR_Q follows this). */
+    .lu-leaf {
+      animation-name: lu-open;
+      animation-range: contain 30% contain 46%;
+      animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+    }
+    .lu-spill {
+      animation-name: lu-on;
+      animation-range: contain 32% contain 48%;
+    }
+    /* The light floods out and becomes the page. */
+    .lu-flood {
+      animation-name: lu-flood;
+      animation-range: contain 56% contain 86%;
+      animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0);
+    }
+    .lu-grain {
+      animation-name: lu-on;
+      animation-range: contain 84% contain 92%;
+    }
+  }
+}
+@keyframes lu-on {
+  from {
+    opacity: 0.01;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes lu-open {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(-78deg);
+  }
+}
+@keyframes lu-flood {
+  0% {
+    opacity: 0;
+    scale: 1;
+  }
+  1% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 1;
+    scale: 16;
+  }
+}

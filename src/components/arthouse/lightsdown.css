@@ -87,18 +87,60 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: radial-gradient(60% 60% at 50% 62%, #fff8e6, rgba(255, 248, 230, 0.4) 60%, transparent);
+  background: radial-gradient(60% 60% at 50% 50%, #fff8e6, rgba(255, 248, 230, 0.4) 60%, transparent);
   opacity: 0;
+  pointer-events: none;
+}
+.ld-ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 2px solid rgba(255, 248, 230, 0.85);
+  border-radius: 50%;
+  box-shadow: 0 0 24px rgba(255, 244, 214, 0.5), inset 0 0 12px rgba(255, 244, 214, 0.4);
+  opacity: 0;
+  pointer-events: none;
+}
+/* The projected film: the real site, warmed a little like a print. */
+.ld-film {
+  position: absolute;
+  inset: 0;
+}
+.ld-film img,
+.ld-film video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.18) contrast(1.04) brightness(0.9);
+}
+/* The title sits in the lower third, over a dark fade, so the film shows. */
+.ld-scrim {
+  position: absolute;
+  inset: 40% 0 0 0;
+  background: linear-gradient(transparent, rgba(5, 5, 5, 0.86) 70%);
   pointer-events: none;
 }
 .ld-title {
   position: absolute;
-  inset: 0;
+  inset: auto 0 0 0;
   display: grid;
-  place-content: center;
-  gap: 6px;
+  gap: 4px;
+  padding: 0 6% 6%;
   text-align: center;
   color: var(--white);
+}
+.ld-title-line {
+  margin-top: 4px;
+  font-family: var(--font-ah-serif);
+  font-size: clamp(15px, 1.4vw, 20px);
+  font-style: italic;
+  color: rgba(241, 236, 226, 0.86);
 }
 .ld-title p:first-child {
   font-family: var(--font-ah-label);
@@ -109,7 +151,7 @@
 }
 .ld-title-name {
   font-family: var(--font-ah-serif);
-  font-size: clamp(40px, 6vw, 88px);
+  font-size: clamp(34px, 4.6vw, 68px);
   font-weight: 300;
   font-style: italic;
   line-height: 1.05;
@@ -152,7 +194,7 @@
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .ld {
-      height: 230svh;
+      height: 180svh;
       view-timeline: --ld block;
     }
     .ld-stage {
@@ -162,6 +204,8 @@
     .ld-stars i,
     .ld-beam,
     .ld-light,
+    .ld-film,
+    .ld-scrim,
     .ld-title p {
       animation-duration: 1ms;
       animation-fill-mode: both;
@@ -173,20 +217,30 @@
       animation-name: ld-out;
       animation-range: entry var(--a) entry calc(var(--a) + 12%);
     }
-    /* He's been cranking; the lamp catches and the beam flickers on. */
+    /* He's been cranking; the lamp catches and the beam flickers on —
+       once he's put the reel on (HostLayer LAMP_AT) and taken the crank. */
     .ld-beam,
-    .ld-light {
+    .ld-light,
+    .ld-film {
       animation-name: ld-flicker;
-      animation-range: contain 16% contain 30%;
+      animation-range: contain 12% contain 24%;
+    }
+    .ld-scrim {
+      animation-name: ld-print;
+      animation-range: contain 24% contain 34%;
     }
     /* The title comes up on the screen like an old print, flickering. */
     .ld-title p:first-child {
       animation-name: ld-print;
-      animation-range: contain 34% contain 50%;
+      animation-range: contain 24% contain 36%;
     }
     .ld-title-name {
       animation-name: ld-print;
-      animation-range: contain 48% contain 66%;
+      animation-range: contain 30% contain 44%;
+    }
+    .ld-title-line {
+      animation-name: ld-print;
+      animation-range: contain 40% contain 52%;
     }
   }
 }

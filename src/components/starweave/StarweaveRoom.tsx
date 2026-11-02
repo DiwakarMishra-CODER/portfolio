@@ -8,6 +8,8 @@ import { STARWEAVE as S, fmt } from "@/data/figures";
 import { HostSaid } from "@/components/home/HostSaid";
 import FamilyTree from "./FamilyTree";
 import HowItWorks from "./HowItWorks";
+import { ProductShot } from "@/components/rooms/ProductShot";
+import Inside from "./Inside";
 import "@/components/work/work.css";
 import "@/components/rooms/rooms.css";
 import "./starweave.css";
@@ -20,7 +22,7 @@ const data = graph as unknown as StarweaveData;
 const faces = faceData as unknown as Faces;
 const p = PROJECTS.find((x) => x.id === "starweave")!;
 // From the Starweave repo (tests/, run by its CI on every push).
-const TESTS = { cases: 173, files: 22 };
+const TESTS = { cases: 174, files: 22 };
 
 /**
  * Starweave's room. The idea first, in a shape anyone knows (a family tree
@@ -58,30 +60,34 @@ export default function StarweaveRoom({ n }: { n: number }) {
             Project {n}, {p.year}
           </p>
           <h2 id="starweave-title">{p.name}</h2>
-          <p className="pg-proj-line">Every artist learned from someone. Starweave maps who, with proof.</p>
-          <div className="sw-said">
-            <HostSaid spot="starweave" />
-            {/* Narrower screens: he stands beside his line (the lane is hidden). */}
-            <div className="pg-spot sw-spot-inline" data-host-spot="starweave" data-size="inline" data-host-stop aria-hidden="true" />
-          </div>
-
-          <div data-host-cue="starweave:tree">
-            <FamilyTree initial={initial} tries={tries} live={faces.live} />
-          </div>
-
-        <p className="sw-numbers">
-          <span>
-            {fmt(S.artists)} artists · {fmt(S.links)} links · every one sourced
-          </span>
-          <span className="sw-links">
+          {/* The front: what it is, the real site being used, where to open it. */}
+          <p className="pg-proj-line">{p.line}</p>
+          <p className="room-spec">
+            {fmt(S.artists)} artists · {fmt(S.links)} links, every one with a source · {p.parts.find((x) => x.k === "Built with")?.v}
+          </p>
+          <p className="room-actions">
             <a href={p.live} target="_blank" rel="noreferrer">
               Open Starweave ↗
             </a>
             <a href={p.source} target="_blank" rel="noreferrer">
               Read the code ↗
             </a>
-          </span>
-        </p>
+          </p>
+          <ProductShot id="starweave" url={p.live} {...p.footage} inside={<Inside data={data} />} />
+          <div className="sw-said">
+            <HostSaid spot="starweave" />
+            {/* Narrower screens: he stands beside his line (the lane is hidden). */}
+            <div className="pg-spot sw-spot-inline" data-host-spot="starweave" data-size="inline" data-host-stop aria-hidden="true" />
+          </div>
+
+          {/* Then the inside: the same data and code, in your hands. */}
+          <div className="room-try">
+            <h3>Try it here</h3>
+            <p>Starweave’s real data and code, running in this page. Every link opens its source.</p>
+          </div>
+          <div data-host-cue="starweave:tree">
+            <FamilyTree initial={initial} tries={tries} live={faces.live} />
+          </div>
 
           <div data-host-cue="starweave:sleeve">
             <HowItWorks source={p.source} tests={TESTS} builtWith={p.parts.find((x) => x.k === "Built with")?.v ?? ""} />

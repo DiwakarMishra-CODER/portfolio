@@ -226,12 +226,16 @@ export default function FamilyTree({ initial, tries, live }: Props) {
   // empty proof slot in his column goes until the tree is back).
   const nudged = useRef(false);
   const [past, setPast] = useState(false);
+  // Not reached yet (the room opens on the real site, above the tree): the
+  // empty proof slot and Skip wait until the tree comes up.
+  const [ahead, setAhead] = useState(true);
   useEffect(() => {
     const row = rootRef.current?.querySelector(".fam-row-up");
     if (step !== "face" || !row) return;
     const io = new IntersectionObserver(([e]) => {
       const gone = !e.isIntersecting && e.boundingClientRect.top < 0;
       setPast(gone);
+      setAhead(!e.isIntersecting && e.boundingClientRect.top > 0);
       if (!gone || nudged.current) return;
       nudged.current = true;
       tell({ kind: "guide", step: 0, b: fam.parents[0]?.name });
@@ -291,7 +295,7 @@ export default function FamilyTree({ initial, tries, live }: Props) {
   const side = (
     <aside className={`fam-receipt-wrap${slot ? " is-in-lane" : ""}`} aria-live="polite">
       {/* Waiting for the first tap: where the proof will appear. */}
-      {step === "face" && !past && <p className="fam-slot">The proof shows up here.</p>}
+      {step === "face" && !past && !ahead && <p className="fam-slot">The proof shows up here.</p>}
       {picked ? (
         // While the guide waits for its first tap this proof is sealed (it
         // stays in the HTML, so it still reads with JS off).
@@ -318,7 +322,7 @@ export default function FamilyTree({ initial, tries, live }: Props) {
       ) : (
         <p className="fam-hint">Tap any face to see the proof.</p>
       )}
-      {slot && step !== "free" && !past && skipButton}
+      {slot && step !== "free" && !past && !ahead && skipButton}
     </aside>
   );
 

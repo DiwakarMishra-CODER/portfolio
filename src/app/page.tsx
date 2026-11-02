@@ -3,9 +3,9 @@ import StarweaveRoom from "@/components/starweave/StarweaveRoom";
 import Nightfall from "@/components/starweave/Nightfall";
 import LightsDown from "@/components/arthouse/LightsDown";
 import ArthouseRoom from "@/components/arthouse/ArthouseRoom";
+import LightsUp from "@/components/arthouse/LightsUp";
 import About from "@/components/home/About";
 import Contact from "@/components/home/Contact";
-import TestBench from "@/components/bench/TestBench";
 import SiteNav from "@/components/nav/SiteNav";
 import XRay from "@/components/xray/XRay";
 import HostLayer from "@/components/host/HostLayer";
@@ -25,9 +25,9 @@ export default function Home() {
           <StarweaveRoom n={1} />
           <LightsDown />
           <ArthouseRoom n={2} />
+          <LightsUp />
         </div>
         <About />
-        <TestBench />
       </main>
       <Contact />
       <HostLayer />

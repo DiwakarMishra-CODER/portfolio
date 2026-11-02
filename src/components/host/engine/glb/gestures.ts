@@ -104,6 +104,95 @@ const MOVES: Partial<Record<ClipName, Key[]>> = {
     [0.6, { UpperArmR: [-0.58, 0, -0.42], LowerArmR: [-0.6, 0, 0], Head: [0.12, -0.3, 0] }],
     [0.8, { UpperArmR: [-0.75, 0, -0.42], LowerArmR: [-0.85, 0, 0], Head: [0.12, -0.3, 0] }],
   ],
+  // Carrying the film reel into the cinema in his right hand: the arm a
+  // little out from his side and the forearm forward, so the reel rides by
+  // his hip instead of swinging into his leg. Held at the end.
+  carry: [
+    [0, {}],
+    [0.3, { UpperArmR: [-0.05, 0, -0.1], LowerArmR: [-0.22, 0, 0] }],
+  ],
+  // Putting the reel on the projector at his right: from the carry, he looks
+  // at it, lifts the reel up onto its front arm, presses it home, and brings
+  // the hand down to the crank. (HostLayer swaps the reel from his hand to the
+  // projector at MOUNT_AT.)
+  mount: [
+    [0, { UpperArmR: [-0.05, 0, -0.1], LowerArmR: [-0.22, 0, 0] }],
+    [0.25, { UpperArmR: [-0.3, 0, -0.35], LowerArmR: [-0.7, 0, 0], Head: [0.12, -0.35, 0], Neck: [0, -0.1, 0] }],
+    [0.6, { UpperArmR: [-0.95, 0, -1.05], LowerArmR: [-0.55, 0, 0], Chest: [0, -0.18, 0.05], Head: [-0.05, -0.42, 0], Neck: [0, -0.12, 0] }],
+    [0.78, { UpperArmR: [-1.0, 0, -1.12], LowerArmR: [-0.4, 0, 0], Chest: [0, -0.2, 0.06], Head: [-0.05, -0.42, 0], Neck: [0, -0.12, 0] }],
+    [1.25, { UpperArmR: [-0.75, 0, -0.42], LowerArmR: [-0.85, 0, 0], Head: [0.12, -0.3, 0] }],
+  ],
+  // Starweave's cut: a presenter's reveal toward the site beside him (his
+  // right arm, the frame's side, sweeps out, palm open; he looks at it).
+  // Scrubbed by the scroll (0 → 1) as its screen swings open; back at 1.
+  reveal: [
+    [0, {}],
+    [0.3, { UpperArmR: [-0.75, 0, -0.55], LowerArmR: [-0.85, 0, 0], Chest: [0, -0.08, 0], Head: [0.05, -0.28, 0], Neck: [0, -0.08, 0] }],
+    [0.62, { UpperArmR: [-0.4, 0, -1.3], LowerArmR: [-0.18, 0, 0], Chest: [0, -0.14, 0.03], Head: [0.08, -0.38, 0], Neck: [0, -0.1, 0] }],
+    [0.82, { UpperArmR: [-0.38, 0, -1.32], LowerArmR: [-0.15, 0, 0], Chest: [0, -0.12, 0.03], Head: [0.1, -0.34, 0], Neck: [0, -0.1, 0] }],
+    [1, {}],
+  ],
+  // Before the jump into the film: knees bend, he leans in, arms swing back,
+  // eyes up at the screen. Scrubbed by the scroll (0 → 1).
+  windup: [
+    [0, {}],
+    [1, {
+      Abdomen: [0.28, 0, 0], Chest: [0.3, 0, 0], Head: [-0.55, 0, 0],
+      UpperArmL: [1.05, 0, 0.15], UpperArmR: [1.05, 0, -0.15], LowerArmL: [-0.3, 0, 0], LowerArmR: [-0.3, 0, 0],
+      UpperLegL: [-0.85, 0, 0], UpperLegR: [-0.85, 0, 0], LowerLegL: [1.35, 0, 0], LowerLegR: [1.35, 0, 0],
+    }],
+  ],
+  // The dive: arms straight past his head, hands together, body long, legs
+  // together and a little trailing. HostLayer turns his whole body so his
+  // hands lead along the arc. Scrubbed by the scroll (0 → 1).
+  dive: [
+    [0, {}],
+    [1, {
+      UpperArmL: [-0.15, 0, 2.95], UpperArmR: [-0.15, 0, -2.95], LowerArmL: [0, 0, 0.08], LowerArmR: [0, 0, -0.08],
+      Chest: [-0.12, 0, 0], Head: [-0.3, 0, 0],
+      UpperLegL: [0.12, 0, -0.04], UpperLegR: [0.12, 0, 0.04], LowerLegL: [0.3, 0, 0], LowerLegR: [0.3, 0, 0],
+    }],
+  ],
+  // Sitting in his cinema seat (the engine also lowers him and moves him back
+  // into it): thighs level, shins down, the popcorn bucket on his lap in his
+  // left hand, his right forearm on the armrest. Scrubbed by the engine.
+  sit: [
+    [0, {}],
+    [1, {
+      UpperLegL: [-1.5, 0, -0.06], UpperLegR: [-1.5, 0, 0.06], LowerLegL: [1.0, 0, 0], LowerLegR: [1.0, 0, 0],
+      Abdomen: [-0.06, 0, 0],
+      UpperArmL: [-0.35, 0, -0.08], LowerArmL: [-0.95, 0, 0],
+      UpperArmR: [-0.2, 0, -0.18], LowerArmR: [-0.55, 0, 0],
+    }],
+  ],
+  // Popcorn while he watches (loops, on top of sitting): a hand into the
+  // bucket, up to his mouth, a chew, back to the armrest, a long look at the
+  // film.
+  munch: [
+    [0, {}],
+    [0.5, { UpperArmR: [-0.35, 0, 0.62], LowerArmR: [-0.75, 0, 0], Head: [0.12, 0, 0] }],
+    [0.8, { UpperArmR: [-0.37, 0, 0.64], LowerArmR: [-0.8, 0, 0], Head: [0.12, 0, 0] }],
+    [1.3, { UpperArmR: [-0.7, 0, 0.5], LowerArmR: [-1.45, -0.35, 0], Head: [0.1, 0, 0] }],
+    [1.55, { UpperArmR: [-0.72, 0, 0.5], LowerArmR: [-1.5, -0.35, 0], Head: [0.04, 0, 0] }],
+    [1.8, { UpperArmR: [-0.7, 0, 0.5], LowerArmR: [-1.45, -0.35, 0], Head: [0.08, 0, 0] }],
+    [2.25, { UpperArmR: [-0.3, 0, 0.35], LowerArmR: [-0.85, 0, 0] }],
+    [2.7, {}],
+    [4.4, {}],
+  ],
+  // Applause at the end of the credits: hands up in front of his chest,
+  // together and apart.
+  clap: [
+    [0, {}],
+    [0.3, { UpperArmL: [-0.85, 0, -0.25], UpperArmR: [-0.85, 0, 0.25], LowerArmL: [-0.95, 0, 0], LowerArmR: [-0.95, 0, 0] }],
+    [0.42, { UpperArmL: [-0.85, 0, -0.5], UpperArmR: [-0.85, 0, 0.5], LowerArmL: [-0.95, 0, 0], LowerArmR: [-0.95, 0, 0] }],
+    [0.54, { UpperArmL: [-0.85, 0, -0.25], UpperArmR: [-0.85, 0, 0.25], LowerArmL: [-0.95, 0, 0], LowerArmR: [-0.95, 0, 0] }],
+    [0.66, { UpperArmL: [-0.85, 0, -0.5], UpperArmR: [-0.85, 0, 0.5], LowerArmL: [-0.95, 0, 0], LowerArmR: [-0.95, 0, 0] }],
+    [0.78, { UpperArmL: [-0.85, 0, -0.25], UpperArmR: [-0.85, 0, 0.25], LowerArmL: [-0.95, 0, 0], LowerArmR: [-0.95, 0, 0] }],
+    [0.9, { UpperArmL: [-0.85, 0, -0.5], UpperArmR: [-0.85, 0, 0.5], LowerArmL: [-0.95, 0, 0], LowerArmR: [-0.95, 0, 0] }],
+    [1.02, { UpperArmL: [-0.85, 0, -0.25], UpperArmR: [-0.85, 0, 0.25], LowerArmL: [-0.95, 0, 0], LowerArmR: [-0.95, 0, 0] }],
+    [1.14, { UpperArmL: [-0.85, 0, -0.5], UpperArmR: [-0.85, 0, 0.5], LowerArmL: [-0.95, 0, 0], LowerArmR: [-0.95, 0, 0] }],
+    [1.6, {}],
+  ],
   // Thrown about too much: a sway, his head lagging behind.
   dizzy: [
     [0, {}],

@@ -6,6 +6,7 @@ import { HostSaid } from "@/components/home/HostSaid";
 import { serif, label } from "./fonts";
 import DoubleBill, { type ShelfFilm } from "./DoubleBill";
 import Credits from "./Credits";
+import { ProductShot } from "@/components/rooms/ProductShot";
 import "@/components/rooms/rooms.css";
 import "./arthouse.css";
 
@@ -33,9 +34,20 @@ export default function ArthouseRoom({ n }: { n: number }) {
             Project {n}, {p.year}
           </p>
           <h2 id="arthouse-title">{p.name}</h2>
-          <p className="ah-line">
-            {fmt(A.films)} art films, ranked by what {A.lists} critics’ lists agree on. Tell it one you love; it finds the next.
+          {/* The front: what it is, the real site being used, where to open it. */}
+          <p className="ah-line">{p.line} Tell it a film you loved; it picks your next.</p>
+          <p className="room-spec">
+            {fmt(A.films)} films, ranked by {A.lists} critics’ lists · {p.parts.find((x) => x.k === "Built with")?.v}
           </p>
+          <p className="room-actions">
+            <a href={p.live} target="_blank" rel="noreferrer">
+              Open Arthouse Atlas ↗
+            </a>
+            <a href={p.source} target="_blank" rel="noreferrer">
+              Read the code ↗
+            </a>
+          </p>
+          <ProductShot id="arthouse" url={p.live} {...p.footage} />
           <p className="ah-proof">
             For <b>2 in 3</b> people, a film they went on to love was in its 10 picks.
             <span>
@@ -47,6 +59,11 @@ export default function ArthouseRoom({ n }: { n: number }) {
             <div className="pg-spot ah-spot-inline" data-host-spot="arthouse" data-size="inline" data-host-stop aria-hidden="true" />
           </div>
 
+          {/* Then the inside: the same model, in your hands. */}
+          <div className="room-try">
+            <h3>Try it here</h3>
+            <p>The live site’s own recommender, running in this page on its real data.</p>
+          </div>
           <div data-host-cue="arthouse:strip">
             <DoubleBill shelf={shelf} live={p.live} />
           </div>

@@ -76,6 +76,9 @@ export default function HowItWorks({ source, tests, builtWith }: { source: strin
           </ul>
           <a className="hiw-more" href={`${source}/tree/main/tests`} target="_blank" rel="noreferrer">
             Read the tests ↗
+          </a>{" "}
+          <a className="hiw-more" href={`${source}/actions/workflows/ci.yml`} target="_blank" rel="noreferrer">
+            See every run on GitHub ↗
           </a>
         </>
       ),

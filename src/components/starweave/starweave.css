@@ -586,30 +586,6 @@
 }
 
 /* ── Numbers and links ───────────────────────────────────── */
-.sw-numbers {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px 24px;
-  margin-top: 56px;
-  padding-top: 20px;
-  border-top: 1px solid var(--moon-line);
-  font-size: 17px;
-  font-weight: 600;
-}
-.sw-links {
-  display: flex;
-  gap: 24px;
-}
-.sw-links a {
-  text-decoration: underline;
-  text-decoration-color: var(--signal);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 5px;
-}
-.sw-links a:hover {
-  color: #ffd2bd;
-}
 
 /* ── How it works: the back of the record sleeve ───────────
    Aged paper, a track list with dotted leaders; each track opens
@@ -983,12 +959,6 @@
 .fam-receipt-wrap.is-in-lane .fam-skip {
   margin-top: 14px;
 }
-/* With him live on a wide screen, his bubble says what to tap. */
-@media (min-width: 1280px) {
-  .host-live .fam-coach p {
-    display: none;
-  }
-}
 @media (scripting: enabled) {
   .fam:not([data-guide="free"]) .fam-explore,
   .fam-receipt.is-sealed {
@@ -1002,6 +972,96 @@
 @media (scripting: none) {
   .fam-coach,
   .fam-slot {
+    display: none;
+  }
+}
+
+/* Behind the screen (the cut): the data it runs on, printed on a sheet in
+   the host's language (sand, ink, one orange), its rows coming in as the
+   screen swings open. */
+.sw-inside {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(16px, 3.2%, 30px) clamp(18px, 4%, 36px);
+  background: var(--sheet) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Crect x='2' y='2' width='2' height='2' fill='%23e8dcc9'/%3E%3C/svg%3E") 0 0 / 6px 6px;
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+.sw-inside-k {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal-ink);
+}
+.sw-inside-h {
+  margin-top: 4px;
+  font-size: clamp(17px, 1.7vw, 24px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.sw-inside ol {
+  margin-top: clamp(8px, 2%, 16px);
+  border-top: 2px solid var(--ink);
+}
+.sw-inside li,
+.sw-inside-more {
+  opacity: clamp(0, calc((var(--lid, 1) - var(--at, 0)) * 7), 1);
+}
+.sw-inside li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: clamp(4px, 1.05%, 9px) 0;
+  border-bottom: 1px solid var(--hairline-strong);
+  font-size: clamp(12px, 1.15vw, 15px);
+}
+.sw-inside-who {
+  font-weight: 700;
+}
+.sw-inside-who i {
+  font-style: normal;
+  color: var(--signal);
+}
+.sw-inside-tier {
+  color: var(--graphite);
+}
+.sw-inside-tier.t0 {
+  color: var(--ink);
+  font-weight: 600;
+}
+.sw-inside-tier.t0::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+  vertical-align: 1px;
+}
+.sw-inside-src {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--graphite);
+  text-align: right;
+}
+.sw-inside-more {
+  margin-top: auto;
+  font-size: clamp(12px, 1.1vw, 14px);
+  font-weight: 600;
+  color: var(--graphite);
+}
+@media (max-width: 560px) {
+  .sw-inside li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .sw-inside-src {
     display: none;
   }
 }

@@ -17,17 +17,6 @@
   background: var(--black);
   color: var(--white);
 }
-/* Out of the dark, back to the sand. */
-.ah-room::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -72px;
-  height: 72px;
-  background: linear-gradient(var(--black), transparent);
-  pointer-events: none;
-}
 .ah-kicker {
   font-family: var(--font-ah-label);
   font-size: 14px;
@@ -121,11 +110,6 @@
 .ah-coach span {
   color: var(--white-2);
   font-weight: 500;
-}
-@media (min-width: 1280px) {
-  .host-live .ah-bill[data-guide="tap"] .ah-coach {
-    visibility: hidden;
-  }
 }
 /* Frames of film, sprocket holes above and below each. */
 .ah-strip {

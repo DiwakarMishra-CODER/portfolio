@@ -3,11 +3,11 @@
 // shows a failing check if any of them drift from the data.
 export const STARWEAVE = {
   artists: 312,
-  links: 1025,
-  sourced: 1025,
-  firstPerson: 772,
+  links: 1024,
+  sourced: 1024,
+  firstPerson: 771,
   reported: 225,
-  sites: 243,
+  sites: 242,
   denials: 36,
 } as const;
 
